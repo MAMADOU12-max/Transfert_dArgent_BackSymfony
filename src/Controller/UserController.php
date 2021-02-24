@@ -1,0 +1,125 @@
+<?php
+
+namespace App\Controller;
+
+use App\Entity\User;
+use App\Entity\Profil;
+use App\Repository\UserRepository;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+
+class UserController extends AbstractController
+{
+      /**
+     * @var SerializerInterface
+     */
+    private $serialize;
+    /**
+     * @var UserPasswordEncoderInterface
+     */
+    private $encoder;
+    /**
+     * @var EntityManagerInterface
+     */
+    private $manager;
+    /**
+     * @var ValidatorInterface
+     */
+    private $validator;
+
+    public function __construct(SerializerInterface $serializer, UserRepository $userRepository,
+    EntityManagerInterface $manager, ValidatorInterface $validator,
+     UserPasswordEncoderInterface $encoder )
+    {
+        $this->serialize = $serializer ;
+        $this->validator = $validator ;
+        $this->encoder = $encoder ;
+        $this->manager = $manager ;
+        $this->userRepository = $userRepository ;
+    }
+
+    /**
+     * @Route(
+     *      name="addUser" ,
+     *      path="/api/admin/users" ,
+     *     methods={"POST"} ,
+     *     defaults={
+     *     "__controller"="App\Controller\UserController::addUser",
+     *         "_api_resource_class"=User::class,
+     *         "_api_collection_operation_name"="adding"
+     *     }
+     *
+     *)
+    */
+    public function adUser( Request $request) {
+
+        //all data
+        $user = $request->request->all() ;
+        // dd($user);
+
+        //get profil
+        $profil = $user["profils"] ;
+        // dd($profil);
+
+        //Instance User
+        $newUser = new User();
+
+        //  if($profil == "ADMIN") {
+        //      $user = $this->serialize->denormalize($user, "App\Entity\Admin");
+        // } elseif ($profil =="APPRENANT") {
+        //      $user = $this->serialize->denormalize($user, "App\Entity\Apprenant");
+        // } elseif ($profil =="FORMATEUR") {
+        //      $user = $this->serialize->denormalize($user, "App\Entity\Formateur");
+        // }elseif ($profil =="CM") {
+        //      $user = $this->serialize->denormalize($user, "App\Entity\Cm");
+        // }
+    
+        //recupération de l'image
+        $photo = $request->files->get("avatar");
+        //is not obliged
+        if($photo)
+        {
+            //  return new JsonResponse("veuillez mettre une images",Response::HTTP_BAD_REQUEST,[],true);
+            //$base64 = base64_decode($imagedata);
+            $photoBlob = fopen($photo->getRealPath(),"rb");
+
+            $newUser->setAvatar($photoBlob);
+        }
+
+
+        $errors = $this->validator->validate($user);
+        if (count($errors)){
+            $errors = $this->serialize->serialize($errors,"json");
+            return new JsonResponse($errors,Response::HTTP_BAD_REQUEST,[],true);
+        }
+
+       
+        $newUser->setPassword($this->encoder->encodePassword($newUser, $user['password'])) ; 
+        $newUser->setUsername($user['username']);
+        $newUser->setFirstname($user['firstname']);
+        $newUser->setLastname($user['lastname']);
+        $newUser->setPhone($user['phone']);
+        $newUser->setIdentityNum($user['identityNum']); 
+        $newUser->setAddress($user['address']);
+        $newUser->setArchivage(false);
+        $newUser->setType(strtolower($profil));
+        
+
+        $newUser->setProfils($this->manager->getRepository(Profil::class)->findOneBy(['libelle'=>$profil])) ;
+     
+        $em = $this->getDoctrine()->getManager();
+        $em->persist($newUser);
+        // $this->manager->persister()
+        $em->flush();
+
+        return $this->json("success",201);
+
+    }
+
+}

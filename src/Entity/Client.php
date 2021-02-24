@@ -2,13 +2,23 @@
 
 namespace App\Entity;
 
-use App\Repository\ClientRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\ClientRepository;
+use Doctrine\Common\Collections\Collection;
+use ApiPlatform\Core\Annotation\ApiResource;
+use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * @ORM\Entity(repositoryClass=ClientRepository::class)
+ * @ApiResource(
+ *    itemOperations={
+ *           "getClientbyId"={
+ *            "path"="/clients/{id}" ,
+ *            "method"="GET"
+ *        }
+ *    }
+ * )
  */
 class Client
 {
@@ -16,21 +26,25 @@ class Client
      * @ORM\Id
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
+      * @Groups({"allTransaction:read","getTransactionById:read"})
      */
     private $id;
 
     /**
      * @ORM\Column(type="string", length=255)
+      * @Groups({"allTransaction:read","getTransactionById:read"})
      */
     private $nomComplet;
 
     /**
      * @ORM\Column(type="integer", nullable=true)
+      * @Groups({"allTransaction:read","getTransactionById:read"})
      */
     private $phone;
 
     /**
      * @ORM\Column(type="integer")
+      * @Groups({"allTransaction:read","getTransactionById:read"})
      */
     private $identityNumber;
 
@@ -39,9 +53,15 @@ class Client
      */
     private $transactions;
 
+    /**
+     * @ORM\OneToMany(targetEntity=Transaction::class, mappedBy="envoyer")
+     */
+    private $transaction;
+
     public function __construct()
     {
         $this->transactions = new ArrayCollection();
+        $this->transaction = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -113,5 +133,13 @@ class Client
         }
 
         return $this;
+    }
+
+    /**
+     * @return Collection|Transaction[]
+     */
+    public function getTransaction(): Collection
+    {
+        return $this->transaction;
     }
 }

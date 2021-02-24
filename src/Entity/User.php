@@ -2,16 +2,40 @@
 
 namespace App\Entity;
 
-use App\Repository\UserRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Security\Core\User\UserInterface;
+use App\Repository\UserRepository;
+use ApiPlatform\Core\Annotation\ApiFilter;
+use Doctrine\Common\Collections\Collection;
 use ApiPlatform\Core\Annotation\ApiResource;
+use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Security\Core\User\UserInterface;
+use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
 
 /**
  * @ORM\Entity(repositoryClass=UserRepository::class)
-* @ApiResource()
+ *  @ApiFilter(SearchFilter::class, properties={"archivage":"exact","type":"exact"})
+* @ApiResource(
+*     collectionOperations={
+ *          "adding"={
+ *              "route_name"="addUser" ,
+ *              "deserialize"= false
+ *           } ,
+ *           "getAllUsers"={
+ *                "path"="/admin/users" ,
+ *                "method"="GET" ,
+ *                "normalization_context"={"groups"={"users:read"}}
+ *           }
+ *     },
+ *     itemOperations={
+*               "getusersbyId"={
+*                  "path"="/admin/users/{id}" ,
+*                   "security_message"="Only admins can add users." ,
+*                   "method"="GET",
+*                   "normalization_context"={"groups"={"usersById:read"}}
+*              }
+*     }
+* )
  */
 class User implements UserInterface
 {
@@ -19,14 +43,16 @@ class User implements UserInterface
      * @ORM\Id
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
+     * @Groups({"users:read","usersById:read"})
      */
     private $id;
 
     /**
      * @ORM\Column(type="string", length=180, unique=true)
+     * @Groups({"users:read","usersById:read"})
      */
     private $username;
-
+ 
     private $roles = [];
 
     /**
@@ -37,30 +63,36 @@ class User implements UserInterface
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups({"users:read","usersById:read"})
      */
     private $firstname;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups({"users:read","usersById:read"})
      */
     private $lastname;
 
     /**
      * @ORM\Column(type="integer", nullable=true)
+     * @Groups({"users:read","usersById:read"})
      */
     private $phone;
 
     /**
      * @ORM\Column(type="integer")
+     * @Groups({"users:read","usersById:read"})
      */
     private $identityNum;
 
     /**
+     * @Groups({"users:read","usersById:read"})
      * @ORM\Column(type="blob", nullable=true)
      */
     private $avatar;
 
     /**
+     * @Groups({"users:read","usersById:read"})
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $address;
@@ -76,14 +108,22 @@ class User implements UserInterface
     private $depots;
 
     /**
+     * @Groups({"users:read","usersById:read"})
      * @ORM\ManyToOne(targetEntity=Profil::class, inversedBy="users")
      */
     private $profils;
+
+    /**
+     * @Groups({"users:read","usersById:read"})
+     * @ORM\Column(type="string", length=255)
+     */
+    private $type;
 
     public function __construct()
     {
         $this->depots = new ArrayCollection();
         $this->comptes = new ArrayCollection();
+        $this->Archivage = false ;
     }
 
     public function getId(): ?int
@@ -115,7 +155,8 @@ class User implements UserInterface
     {
         $roles = $this->roles;
         // guarantee every user at least has ROLE_USER
-        $roles[] = 'ROLE_USER';
+        $roles[] = 'ROLE_'.$this->profils->getLibelle();
+        // $roles[] = 'ROLE_USER';
 
         return array_unique($roles);
     }
@@ -212,7 +253,11 @@ class User implements UserInterface
 
     public function getAvatar()
     {
-        return $this->avatar;
+        $avatar = $this->avatar;
+        if($avatar) {
+            return (base64_encode(stream_get_contents($this->avatar))) ; 
+         }
+        return $avatar;
     }
 
     public function setAvatar($avatar): self
@@ -284,6 +329,18 @@ class User implements UserInterface
     public function setProfils(?Profil $profils): self
     {
         $this->profils = $profils;
+
+        return $this;
+    }
+
+    public function getType(): ?string
+    {
+        return $this->profils->getLibelle();
+    }
+
+    public function setType(string $type): self
+    {
+        $this->type = $type;
 
         return $this;
     }

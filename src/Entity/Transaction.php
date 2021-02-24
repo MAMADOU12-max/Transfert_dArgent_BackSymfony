@@ -4,18 +4,42 @@ namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\TransactionRepository;
+use ApiPlatform\Core\Annotation\ApiFilter;
 use ApiPlatform\Core\Annotation\ApiResource;
 use ApiPlatform\Core\Annotation\ApiSubresource;
+use Symfony\Component\Validator\Constraints\Date;
+use Symfony\Component\Serializer\Annotation\Groups;
+use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ORM\Entity(repositoryClass=TransactionRepository::class)
+ *  @ApiFilter(SearchFilter::class, properties={"Etat":"exact"})
  * @ApiResource(
 *     collectionOperations={
  *          "doTransaction"={
- *              "route_name"="doTransaction" ,
- *                "normalization_context"={"groups"={"send:write"}}
- *           }
+ *                "route_name"="doTransaction" ,
+ *                "method"="POST",
+ *                   "deserialize"= false
+ *           } ,
+ *          "recupTransaction"={
+ *                "route_name"="recupTransaction" ,
+ *                "method"="PUT",
+ *                   "deserialize"= false
+ *           },
+ *           "getAllTransaction"={
+ *                  "path"="/transactions" ,
+*                   "method"="GET" ,
+*                   "normalization_context"={"groups"={"allTransaction:read"}} ,
+ *          }
  *     },
+ *    itemOperations={
+ *       "getTransactionById"={
+ *                  "path"="/transactions/{id}" ,
+*                   "method"="GET" ,
+*                   "normalization_context"={"groups"={"getTransactionById:read"}} ,
+ *          }
+ *   }
 *)
  */
 class Transaction
@@ -24,84 +48,108 @@ class Transaction
      * @ORM\Id
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
+     * @Groups({"allTransaction:read","getTransactionById:read"})
      */
     private $id;
 
     /**
      * @ORM\Column(type="integer")
+     * @Groups({"allTransaction:read","getTransactionById:read"})
      */
     private $montant;
 
     /**
      * @ORM\Column(type="date")
+     * @Groups({"allTransaction:read","getTransactionById:read"})
+     * @Assert\Date
+     * @var string A "Y-m-d" formatted value
      */
     private $dateDepot;
 
     /**
-     * @ORM\Column(type="date")
+     * @ORM\Column(type="date", nullable=true)
+     * @Groups({"allTransaction:read","getTransactionById:read"})
+     * * @Assert\Date
+     * @var string A "Y-m-d" formatted value
      */
     private $dateRetrait;
 
     /**
-     * @ORM\Column(type="date")
+     * @ORM\Column(type="date", nullable=true)
+     * @Groups({"allTransaction:read","getTransactionById:read"})
      */
     private $dateAnnulation;
 
     /**
      * @ORM\Column(type="integer")
+     * @Groups({"allTransaction:read","getTransactionById:read"})
      */
     private $TTC;
 
     /**
      * @ORM\Column(type="integer")
+     * @Groups({"allTransaction:read","getTransactionById:read"})
      */
     private $fraisEtat;
 
     /**
      * @ORM\Column(type="integer")
+     * @Groups({"allTransaction:read","getTransactionById:read"})
      */
     private $fraisSystem;
 
     /**
      * @ORM\Column(type="integer")
+     * @Groups({"allTransaction:read","getTransactionById:read"})
      */
     private $fraisEnvoie;
 
     /**
      * @ORM\Column(type="integer")
+     * @Groups({"allTransaction:read","getTransactionById:read"})
      */
     private $fraisRetrait;
 
     /**
      * @ORM\Column(type="integer")
+     * @Groups({"allTransaction:read","getTransactionById:read"})
      */
     private $codeTransaction;
 
     /**
      * @ORM\ManyToOne(targetEntity=Compte::class, inversedBy="transactions")
-     * @ApiSubresource()
+     * @Groups({"allTransaction:read","getTransactionById:read"})
      */
     private $comptes;
 
     /**
      * @ORM\ManyToOne(targetEntity=User::class, inversedBy="transactions")
+     * @Groups({"allTransaction:read","getTransactionById:read"})
      */
     private $retrait;
 
     /**
      * @ORM\ManyToOne(targetEntity=User::class, inversedBy="transactions")
+     * @Groups({"allTransaction:read","getTransactionById:read"})
      */
     private $deposer;
 
     /**
      * @ORM\ManyToOne(targetEntity=Client::class, inversedBy="transactions")
+     * @Groups({"allTransaction:read","getTransactionById:read"})
      */
     private $recuperer;
 
     /**
-     * @ORM\ManyToOne(targetEntity=Client::class, inversedBy="transactions")
+     * @ORM\ManyToOne(targetEntity=Client::class, inversedBy="transaction")
+     * @Groups({"allTransaction:read","getTransactionById:read"})
      */
     private $envoyer;
+
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $Etat;
 
     public function getId(): ?int
     {
@@ -284,6 +332,18 @@ class Transaction
     public function setEnvoyer(?Client $envoyer): self
     {
         $this->envoyer = $envoyer;
+
+        return $this;
+    }
+
+    public function getEtat(): ?string
+    {
+        return $this->Etat;
+    }
+
+    public function setEtat(string $Etat): self
+    {
+        $this->Etat = $Etat;
 
         return $this;
     }

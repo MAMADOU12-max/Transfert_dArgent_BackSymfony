@@ -58,6 +58,11 @@ class Client
      */
     private $transaction;
 
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $codeTransaction;
+
     public function __construct()
     {
         $this->transactions = new ArrayCollection();
@@ -141,5 +146,17 @@ class Client
     public function getTransaction(): Collection
     {
         return $this->transaction;
+    }
+
+    public function getCodeTransaction(): ?string
+    {
+        return $this->codeTransaction;
+    }
+
+    public function setCodeTransaction(string $codeTransaction): self
+    {
+        $this->codeTransaction = $codeTransaction;
+
+        return $this;
     }
 }

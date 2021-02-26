@@ -70,23 +70,11 @@ class UserController extends AbstractController
         //Instance User
         $newUser = new User();
 
-        //  if($profil == "ADMIN") {
-        //      $user = $this->serialize->denormalize($user, "App\Entity\Admin");
-        // } elseif ($profil =="APPRENANT") {
-        //      $user = $this->serialize->denormalize($user, "App\Entity\Apprenant");
-        // } elseif ($profil =="FORMATEUR") {
-        //      $user = $this->serialize->denormalize($user, "App\Entity\Formateur");
-        // }elseif ($profil =="CM") {
-        //      $user = $this->serialize->denormalize($user, "App\Entity\Cm");
-        // }
-    
         //recupération de l'image
         $photo = $request->files->get("avatar");
         //is not obliged
         if($photo)
         {
-            //  return new JsonResponse("veuillez mettre une images",Response::HTTP_BAD_REQUEST,[],true);
-            //$base64 = base64_decode($imagedata);
             $photoBlob = fopen($photo->getRealPath(),"rb");
 
             $newUser->setAvatar($photoBlob);

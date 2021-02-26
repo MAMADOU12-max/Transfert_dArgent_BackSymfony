@@ -19,20 +19,30 @@ use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
 *     collectionOperations={
  *          "adding"={
  *              "route_name"="addUser" ,
- *              "deserialize"= false
+ *               "deserialize"= false ,
+ *              "security_post_denormalize"="is_granted('ROLE_ADMINAGENCE') || is_granted('ROLE_ADMINSYSTEM')" ,
+ *                "security_message"="Only admin system and admin agence can do this action" 
  *           } ,
  *           "getAllUsers"={
  *                "path"="/admin/users" ,
  *                "method"="GET" ,
- *                "normalization_context"={"groups"={"users:read"}}
+ *                "normalization_context"={"groups"={"users:read"}},
+ *                "security_post_denormalize"="is_granted('ROLE_ADMINAGENCE') || is_granted('ROLE_ADMINSYSTEM')" ,
+ *                "security_message"="Only admin system and admin agence can do this action" ,
  *           }
  *     },
  *     itemOperations={
-*               "getusersbyId"={
-*                  "path"="/admin/users/{id}" ,
+*               "getUserbyId"={
+*                  "path"="/admin/user/{id}" ,
 *                   "security_message"="Only admins can add users." ,
 *                   "method"="GET",
 *                   "normalization_context"={"groups"={"usersById:read"}}
+*              },
+*             "bloquerUserbyId"={
+*                  "path"="/admin/user/{id}" ,
+*                   "security_post_denormalize"="is_granted('ROLE_ADMINAGENCE') || is_granted('ROLE_ADMINSYSTEM')" ,    
+*                   "security_message"="Only admin agence and admin system can add users." ,
+*                   "method"="DELETE"
 *              }
 *     }
 * )
@@ -43,13 +53,13 @@ class User implements UserInterface
      * @ORM\Id
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
-     * @Groups({"users:read","usersById:read"})
+     * @Groups({"users:read","usersById:read","depotbycaissier:read","depot:read","getDepotById:read","getAgencebyId:read"})
      */
     private $id;
 
     /**
      * @ORM\Column(type="string", length=180, unique=true)
-     * @Groups({"users:read","usersById:read"})
+     * @Groups({"users:read","usersById:read","depot:read","getDepotById:read","allagence:read","getAgencebyId:read"})
      */
     private $username;
  
@@ -63,42 +73,43 @@ class User implements UserInterface
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Groups({"users:read","usersById:read"})
+     * @Groups({"users:read","usersById:read","depot:read","getDepotById:read","allagence:read","getAgencebyId:read"})
      */
     private $firstname;
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Groups({"users:read","usersById:read"})
+     * @Groups({"users:read","usersById:read","depot:read","getDepotById:read","allagence:read","getAgencebyId:read"})
      */
     private $lastname;
 
     /**
      * @ORM\Column(type="integer", nullable=true)
-     * @Groups({"users:read","usersById:read"})
+     * @Groups({"users:read","usersById:read","depot:read","getDepotById:read","allagence:read","getAgencebyId:read"})
      */
     private $phone;
 
     /**
      * @ORM\Column(type="integer")
-     * @Groups({"users:read","usersById:read"})
+     * @Groups({"users:read","usersById:read","depot:read","getDepotById:read","allagence:read","getAgencebyId:read"})
      */
     private $identityNum;
 
     /**
-     * @Groups({"users:read","usersById:read"})
+     * @Groups({"users:read","usersById:read","depot:read","getDepotById:read","allagence:read","getAgencebyId:read"})
      * @ORM\Column(type="blob", nullable=true)
      */
     private $avatar;
 
     /**
-     * @Groups({"users:read","usersById:read"})
+     * @Groups({"users:read","usersById:read","depot:read","getDepotById:read","allagence:read","getAgencebyId:read"})
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $address;
 
     /**
      * @ORM\Column(type="boolean")
+       * @Groups({"users:read","usersById:read","depot:read","getDepotById:read"})
      */
     private $archivage;
 
@@ -114,10 +125,20 @@ class User implements UserInterface
     private $profils;
 
     /**
-     * @Groups({"users:read","usersById:read"})
+     * @Groups({"users:read","usersById:read","depot:read","getDepotById:read","allagence:read","getAgencebyId:read"})
      * @ORM\Column(type="string", length=255)
      */
     private $type;
+
+    /**
+     * @ORM\OneToMany(targetEntity=Compte::class, mappedBy="users")
+     */
+    private $comptes;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=Agence::class, inversedBy="users")
+     */
+    private $agence;
 
     public function __construct()
     {
@@ -341,6 +362,48 @@ class User implements UserInterface
     public function setType(string $type): self
     {
         $this->type = $type;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Compte[]
+     */
+    public function getComptes(): Collection
+    {
+        return $this->comptes;
+    }
+
+    public function addCompte(Compte $compte): self
+    {
+        if (!$this->comptes->contains($compte)) {
+            $this->comptes[] = $compte;
+            $compte->setUsers($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCompte(Compte $compte): self
+    {
+        if ($this->comptes->removeElement($compte)) {
+            // set the owning side to null (unless already changed)
+            if ($compte->getUsers() === $this) {
+                $compte->setUsers(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getAgence(): ?Agence
+    {
+        return $this->agence;
+    }
+
+    public function setAgence(?Agence $agence): self
+    {
+        $this->agence = $agence;
 
         return $this;
     }

@@ -16,7 +16,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @ORM\Entity(repositoryClass=TransactionRepository::class)
  *  @ApiFilter(SearchFilter::class, properties={"Etat":"exact"})
  * @ApiResource(
-*     collectionOperations={
+ *     collectionOperations={
  *          "doTransaction"={
  *                "route_name"="doTransaction" ,
  *                "method"="POST",
@@ -38,7 +38,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  *                  "path"="/transactions/{id}" ,
 *                   "method"="GET" ,
 *                   "normalization_context"={"groups"={"getTransactionById:read"}} ,
- *          }
+ *        }
  *   }
 *)
  */
@@ -111,16 +111,10 @@ class Transaction
     private $fraisRetrait;
 
     /**
-     * @ORM\Column(type="integer")
+     * @ORM\Column(type="string", length=255)
      * @Groups({"allTransaction:read","getTransactionById:read"})
      */
     private $codeTransaction;
-
-    /**
-     * @ORM\ManyToOne(targetEntity=Compte::class, inversedBy="transactions")
-     * @Groups({"allTransaction:read","getTransactionById:read"})
-     */
-    private $comptes;
 
     /**
      * @ORM\ManyToOne(targetEntity=User::class, inversedBy="transactions")
@@ -150,6 +144,16 @@ class Transaction
      * @ORM\Column(type="string", length=255)
      */
     private $Etat;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=Compte::class, inversedBy="transactions")
+     */
+    private $compteEnvoie;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=Compte::class, inversedBy="transactions")
+     */
+    private $compteRetrait;
 
     public function getId(): ?int
     {
@@ -264,30 +268,18 @@ class Transaction
         return $this;
     }
 
-    public function getCodeTransaction(): ?int
+    public function getCodeTransaction(): ?string
     {
         return $this->codeTransaction;
     }
 
-    public function setCodeTransaction(int $codeTransaction): self
+    public function setCodeTransaction(string $codeTransaction): self
     {
         $this->codeTransaction = $codeTransaction;
 
         return $this;
     }
-
-    public function getComptes(): ?Compte
-    {
-        return $this->comptes;
-    }
-
-    public function setComptes(?Compte $comptes): self
-    {
-        $this->comptes = $comptes;
-
-        return $this;
-    }
-
+    
     public function getRetrait(): ?User
     {
         return $this->retrait;
@@ -344,6 +336,30 @@ class Transaction
     public function setEtat(string $Etat): self
     {
         $this->Etat = $Etat;
+
+        return $this;
+    }
+
+    public function getCompteEnvoie(): ?Compte
+    {
+        return $this->compteEnvoie;
+    }
+
+    public function setCompteEnvoie(?Compte $compteEnvoie): self
+    {
+        $this->compteEnvoie = $compteEnvoie;
+
+        return $this;
+    }
+
+    public function getCompteRetrait(): ?Compte
+    {
+        return $this->compteRetrait;
+    }
+
+    public function setCompteRetrait(?Compte $compteRetrait): self
+    {
+        $this->compteRetrait = $compteRetrait;
 
         return $this;
     }

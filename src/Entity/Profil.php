@@ -8,10 +8,58 @@ use Doctrine\Common\Collections\Collection;
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Serializer\Annotation\Groups;
+use ApiPlatform\Core\Annotation\ApiSubresource;
+use Symfony\Component\Validator\Constraints\Type;
+use Symfony\Component\Validator\Constraints\Length;
+use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints as Assert;
+use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use ApiPlatform\Core\Annotation\ApiFilter;
+
 
 /**
  * @ORM\Entity(repositoryClass=ProfilRepository::class)
- * @ApiResource()
+ * @ApiFilter(SearchFilter::class, properties={"archivage":"exact"})
+ * @ApiResource(
+ *    collectionOperations={
+ *         "createProfil"={
+ *              "path"="/profil" ,
+ *              "method"="POST" ,
+ *              "security_post_denormalize"="is_granted('ROLE_ADMINSYSTEM')" ,
+ *              "security_message"="Only admin system can create a profil" 
+ *          }, 
+ *           "allProfils"={
+ *              "path"="/profils" ,
+ *              "method"="GET" ,
+ *              "normalization_context"={"groups"={"allProfil:read"}} ,
+ *              "security_post_denormalize"="is_granted('ROLE_ADMINSYSTEM')" ,
+ *              "security_message"="Only admin system can see list" 
+ *          }
+ *     },
+ *     itemOperations={
+ *         "getProfilById"={
+ *             "path"="/profil/{id}", 
+ *              "method"="GET" ,
+ *              "normalization_context"={"groups"={"getProfilbyId:read"}} ,
+ *              "security_post_denormalize"="is_granted('ROLE_ADMINSYSTEM')" ,
+ *             "security_message"="Only admin system can see detail" 
+ *         },
+ *        "putProfilById"={
+ *             "path"="/profil/{id}", 
+ *              "method"="PUT" ,
+ *              "normalization_context"={"groups"={"getProfilbyId:read"}} ,
+ *              "security_post_denormalize"="is_granted('ROLE_ADMINSYSTEM')" ,
+ *             "security_message"="Only admin system can update profil" 
+ *         },
+ *        "deleteProfilById"={
+ *              "path"="/profil/{id}", 
+ *              "method"="DELETE" ,
+ *              "security_post_denormalize"="is_granted('ROLE_ADMINSYSTEM')" ,
+ *              "security_message"="Only admin system can block an agence" 
+ *         }
+ *    }
+ * )
  */
 class Profil
 {
@@ -19,13 +67,13 @@ class Profil
      * @ORM\Id
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
-     * @Groups({"users:read"})
+     * @Groups({"users:read","allProfil:read","getProfilbyId:read"})
      */
     private $id;
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Groups({"users:read"})
+     * @Groups({"users:read","allProfil:read","getProfilbyId:read"})
      */
     private $libelle;
 
@@ -34,9 +82,15 @@ class Profil
      */
     private $users;
 
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $archivage;
+
     public function __construct()
     {
         $this->users = new ArrayCollection();
+        $this->archivage = false;
     }
 
     public function getId(): ?int
@@ -82,6 +136,18 @@ class Profil
                 $user->setProfils(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getArchivage(): ?bool
+    {
+        return $this->archivage;
+    }
+
+    public function setArchivage(bool $archivage): self
+    {
+        $this->archivage = $archivage;
 
         return $this;
     }

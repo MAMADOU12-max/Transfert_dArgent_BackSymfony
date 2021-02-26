@@ -6,39 +6,71 @@ use Doctrine\ORM\Mapping as ORM;
 use App\Repository\CompteRepository;
 use Doctrine\Common\Collections\Collection;
 use ApiPlatform\Core\Annotation\ApiResource;
+use ApiPlatform\Core\Annotation\ApiSubresource;
 use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\Validator\Constraints\Type;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints\Length;
+use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 /**
  * @ORM\Entity(repositoryClass=CompteRepository::class)
  * @ApiResource(
- *      itemOperations={
-*            "getComptebyId"={
-*                  "path"="/comptes/{id}" ,
-*                 "method"="GET"
-*            }
-*     }
+ *     collectionOperations={
+ *           "addCompteByAdminSystem"={
+ *                "path"="/compte" ,
+ *                "method"="POST" ,
+ *                "denormalization_context"={"groups"={"comtpe:read"}} ,
+ *                "security_post_denormalize"="is_granted('ROLE_ADMINSYSTEM')" ,
+ *                "security_message"="Only admin system can create a count" 
+ *           },
+  *          "getAllCompte"={
+ *               "path"="/comptes" ,
+ *               "method"="GET" ,
+ *                 "security_post_denormalize"="is_granted('ROLE_ADMINSYSTEM')" ,
+ *                "security_message"="Only admin system can see counts" 
+ *           }
+ *     },
+ *    itemOperations={
+ *          "getComptebyId"={
+ *               "path"="/comptes/{id}" ,
+ *               "method"="GET" ,
+ *                "security_post_denormalize"="is_granted('ROLE_ADMINSYSTEM')" ,
+ *                "security_message"="Only admin system can see a a count" 
+ *           },
+ *           "bloquerCompte"={
+ *               "path"="/comptes/{id}" ,
+ *               "method"="DELETE" ,
+ *                "security_post_denormalize"="is_granted('ROLE_ADMINSYSTEM')" ,
+ *                "security_message"="Only admin system can block a a count" 
+ *           
+ *          }
+ *    }
  * )
  */
+
+
 class Compte
 {
     /**
      * @ORM\Id
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
-     * @Groups({"allTransaction:read","getTransactionById:read"})
+     * @Groups({"allTransaction:read","getTransactionById:read","depot:read","getDepotById:read",
+     * "getAgencebyId:read"})
      */
     private $id;
 
     /**
      * @ORM\Column(type="integer")
-     * @Groups({"allTransaction:read","getTransactionById:read"})
-     */
-    private $numCompte;
-
-    /**
-     * @ORM\Column(type="integer")
-     * @Groups({"allTransaction:read","getTransactionById:read"})
+     * @Groups({"allTransaction:read","getTransactionById:read","depot:read","getDepotById:read"
+     * ,"comtpe:read","agence:create","allagence:read","getAgencebyId:read"})
+      * @Assert\NotBlank
+     * @Assert\GreaterThanOrEqual(
+     *     value = 700000
+     * )
      */
     private $solde;
 
@@ -46,21 +78,37 @@ class Compte
      * @ORM\OneToMany(targetEntity=Depot::class, mappedBy="comptes")
      */
     private $depots;
-
+     
     /**
      * @ORM\ManyToOne(targetEntity=User::class, inversedBy="comptes")
      */
-    private $adminSystem;
+    private $users;
 
     /**
-     * @ORM\OneToOne(targetEntity=Agence::class, cascade={"persist", "remove"})
-     */
-    private $agence;
-
-    /**
-     * @ORM\OneToMany(targetEntity=Transaction::class, mappedBy="comptes")
+     * @ORM\OneToMany(targetEntity=Transaction::class, mappedBy="compteEnvoie")
      */
     private $transactions;
+
+    /**
+     * @ORM\Column(type="integer", unique=true)
+       * @Assert\NotBlank
+     * @Groups({"allTransaction:read","getTransactionById:read","depot:read","getDepotById:read",
+     * "comtpe:read","agence:create","getAgencebyId:read"})
+     */
+    private $identifiantCompte;
+
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $disabled;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=Agence::class, inversedBy="comptes", cascade={"persist"})
+    * @Groups({"comtpe:read"})
+    * @Assert\NotBlank
+    * @ApiSubresource
+     */
+    private $agence;
 
 
     public function __construct()
@@ -68,23 +116,12 @@ class Compte
         $this->depots = new ArrayCollection();
         $this->adminSystem = new ArrayCollection();
         $this->transactions = new ArrayCollection();
+        $this->disabled = false;
     }
 
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function getNumCompte(): ?int
-    {
-        return $this->numCompte;
-    }
-
-    public function setNumCompte(int $numCompte): self
-    {
-        $this->numCompte = $numCompte;
-
-        return $this;
     }
 
     public function getSolde(): ?int
@@ -129,26 +166,14 @@ class Compte
         return $this;
     }
 
-    public function getAdminSystem(): ?User
+    public function getUsers(): ?User
     {
-        return $this->adminSystem;
+        return $this->users;
     }
 
-    public function setAdminSystem(?User $adminSystem): self
+    public function setUsers(?User $users): self
     {
-        $this->adminSystem = $adminSystem;
-
-        return $this;
-    }
-
-    public function getAgence(): ?Agence
-    {
-        return $this->agence;
-    }
-
-    public function setAgence(?Agence $agence): self
-    {
-        $this->agence = $agence;
+        $this->users = $users;
 
         return $this;
     }
@@ -165,7 +190,7 @@ class Compte
     {
         if (!$this->transactions->contains($transaction)) {
             $this->transactions[] = $transaction;
-            $transaction->setComptes($this);
+            $transaction->setCompteEnvoie($this);
         }
 
         return $this;
@@ -175,10 +200,46 @@ class Compte
     {
         if ($this->transactions->removeElement($transaction)) {
             // set the owning side to null (unless already changed)
-            if ($transaction->getComptes() === $this) {
-                $transaction->setComptes(null);
+            if ($transaction->getCompteEnvoie() === $this) {
+                $transaction->setCompteEnvoie(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getIdentifiantCompte(): ?int
+    {
+        return $this->identifiantCompte;
+    }
+
+    public function setIdentifiantCompte(int $identifiantCompte): self
+    {
+        $this->identifiantCompte = $identifiantCompte;
+
+        return $this;
+    }
+
+    public function getDisabled(): ?bool
+    {
+        return $this->disabled;
+    }
+
+    public function setDisabled(bool $disabled): self
+    {
+        $this->disabled = $disabled;
+
+        return $this;
+    }
+
+    public function getAgence(): ?Agence
+    {
+        return $this->agence;
+    }
+
+    public function setAgence(?Agence $agence): self
+    {
+        $this->agence = $agence;
 
         return $this;
     }

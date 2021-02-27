@@ -50,6 +50,13 @@ use ApiPlatform\Core\Annotation\ApiFilter;
  *              "method"="DELETE" ,
  *              "security_post_denormalize"="is_granted('ROLE_ADMINSYSTEM')" ,
  *              "security_message"="Only admin system can block an agence" 
+ *         },
+ *          "partByAgence"={
+ *              "path"="/agence/transaction/{id}/part", 
+ *              "normalization_context"={"groups"={"partAgencebyId:read"}} ,
+ *              "method"="GET" ,
+ *              "security_post_denormalize"="is_granted('ROLE_ADMINSYSTEM')" ,
+ *              "security_message"="Only admin system can block an agence"        
  *         }
  *    }
  * )
@@ -66,7 +73,7 @@ class Agence
 
     /**
      * @ORM\Column(type="string", length=255, unique=true)
-     * @Groups({"agence:create","allagence:read","getAgencebyId:read"})
+     * @Groups({"agence:create","allagence:read","getAgencebyId:read","partAgencebyId:read"})
      * @Assert\NotBlank
      */
     private $nomAgence;
@@ -92,7 +99,7 @@ class Agence
 
     /**
      * @ORM\OneToMany(targetEntity=Compte::class, mappedBy="agence",cascade={"persist"})
-     * @Groups({"allagence:read","agence:create","getAgencebyId:read"})
+     * @Groups({"allagence:read","agence:create","getAgencebyId:read","partAgencebyId:read"})
      * @Assert\NotBlank
      * @ApiSubresource
      */

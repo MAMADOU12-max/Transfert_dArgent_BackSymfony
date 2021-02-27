@@ -9,6 +9,7 @@ use App\Entity\Compte;
 use App\Entity\Commissions;
 use App\Entity\Transaction;
 use App\Repository\UserRepository;
+use App\Entity\SummarizeTransaction;
 use App\Repository\ClientRepository;
 use App\Repository\CompteRepository;
 use App\Repository\TarifsRepository;
@@ -166,6 +167,14 @@ class TransactionController extends AbstractController
         $transaction->setCodeTransaction($genereCodeTransaction);
         $transaction->setCompteEnvoie($this->compteRepository->findOneBy(['id'=>(int)$userDoingTransaction]));
         //dd($transaction);
+
+        // summarize transaction
+        $summarizeTransaction = new SummarizeTransaction();
+        $summarizeTransaction->setMontant($montantToSended);
+        $summarizeTransaction->setCompte($userDoingTransaction);
+        $summarizeTransaction->setType("dépôt");
+        $this->manager->persist($summarizeTransaction);
+
  
         $this->manager->persist($transaction);
         $this->manager->flush();
@@ -213,6 +222,14 @@ class TransactionController extends AbstractController
                 $compteFocus->setSolde($compteFocus->getSolde() +$transactionDo->getMontant() + $transactionDo->getFraisRetrait());
                 $this->manager->persist($compteFocus);
                 //  dd($compteFocus);
+
+                  // summarize transaction
+                $summarizeTransaction = new SummarizeTransaction();
+                $summarizeTransaction->setMontant($transactionDo->getMontant());
+                $summarizeTransaction->setCompte($idCompteCaissierGiven);
+                $summarizeTransaction->setType("retrait");
+                $this->manager->persist($summarizeTransaction);
+
                 $this->manager->flush();
                 return $this->json("success", 201);
             }
@@ -279,17 +296,5 @@ class TransactionController extends AbstractController
 
 
 
-// ******************************************************************Parts************************************************************//
-  /**
-     * @Route(
-     *      name="getTransactionByCode" ,
-     *      path="/api/transaction/{id}" ,
-     *     methods={"GET"} ,
-     *     defaults={
-     *         "__controller"="App\Controller\TransactionController::getTransactionByCode",
-     *         "_api_resource_class"=Transaction::class ,
-     *         "_api_collection_operation_name"="getTransactionByCode"
-     *     }
-     *)
-     */
-// ****************************************************************End Parts***********************************************************//
+
+   

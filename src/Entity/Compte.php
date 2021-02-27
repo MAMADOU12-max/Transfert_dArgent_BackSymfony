@@ -58,7 +58,7 @@ class Compte
      * @ORM\Id
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
-     * @Groups({"allTransaction:read","getTransactionById:read","depot:read","getDepotById:read",
+     * @Groups({"allTransaction:read","getTransactionById:read","depot:read","getDepotById:read","partAgencebyId:read",
      * "getAgencebyId:read"})
      */
     private $id;
@@ -86,6 +86,7 @@ class Compte
 
     /**
      * @ORM\OneToMany(targetEntity=Transaction::class, mappedBy="compteEnvoie")
+     * @Groups({"partAgencebyId:read"})
      */
     private $transactions;
 

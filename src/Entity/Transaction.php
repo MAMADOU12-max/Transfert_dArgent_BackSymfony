@@ -48,7 +48,7 @@ class Transaction
      * @ORM\Id
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
-     * @Groups({"allTransaction:read","getTransactionById:read"})
+     * @Groups({"allTransaction:read","getTransactionById:read","partAgencebyId:read"})
      */
     private $id;
 
@@ -82,31 +82,31 @@ class Transaction
 
     /**
      * @ORM\Column(type="integer")
-     * @Groups({"allTransaction:read","getTransactionById:read"})
+     * @Groups({"allTransaction:read","getTransactionById:read","partAgencebyId:read"})
      */
     private $TTC;
 
     /**
      * @ORM\Column(type="integer")
-     * @Groups({"allTransaction:read","getTransactionById:read"})
+     * @Groups({"allTransaction:read","getTransactionById:read","partAgencebyId:read"})
      */
     private $fraisEtat;
 
     /**
      * @ORM\Column(type="integer")
-     * @Groups({"allTransaction:read","getTransactionById:read"})
+     * @Groups({"allTransaction:read","getTransactionById:read","partAgencebyId:read"})
      */
     private $fraisSystem;
 
     /**
      * @ORM\Column(type="integer")
-     * @Groups({"allTransaction:read","getTransactionById:read"})
+     * @Groups({"allTransaction:read","getTransactionById:read","partAgencebyId:read"})
      */
     private $fraisEnvoie;
 
     /**
      * @ORM\Column(type="integer")
-     * @Groups({"allTransaction:read","getTransactionById:read"})
+     * @Groups({"allTransaction:read","getTransactionById:read","partAgencebyId:read"})
      */
     private $fraisRetrait;
 

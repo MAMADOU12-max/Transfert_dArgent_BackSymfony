@@ -37,13 +37,13 @@ class Client
     private $nomComplet;
 
     /**
-     * @ORM\Column(type="integer", nullable=true)
+     * @ORM\Column(type="integer")
       * @Groups({"allTransaction:read","getTransactionById:read"})
      */
     private $phone;
 
     /**
-     * @ORM\Column(type="integer")
+     * @ORM\Column(type="integer", nullable=true)
       * @Groups({"allTransaction:read","getTransactionById:read"})
      */
     private $identityNumber;
@@ -63,10 +63,22 @@ class Client
      */
     private $codeTransaction;
 
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $action;
+
+    /**
+     * @ORM\Column(type="integer")
+     */
+    private $montant;
+
     public function __construct()
     {
         $this->transactions = new ArrayCollection();
         $this->transaction = new ArrayCollection();
+        $this->action = "transaction";
+        $this->montant = 0;
     }
 
     public function getId(): ?int
@@ -156,6 +168,30 @@ class Client
     public function setCodeTransaction(string $codeTransaction): self
     {
         $this->codeTransaction = $codeTransaction;
+
+        return $this;
+    }
+
+    public function getAction(): ?string
+    {
+        return $this->action;
+    }
+
+    public function setAction(string $action): self
+    {
+        $this->action = $action;
+
+        return $this;
+    }
+
+    public function getMontant(): ?int
+    {
+        return $this->montant;
+    }
+
+    public function setMontant(int $montant): self
+    {
+        $this->montant = $montant;
 
         return $this;
     }

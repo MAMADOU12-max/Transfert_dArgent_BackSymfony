@@ -8,6 +8,7 @@ use App\Repository\CompteRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\CommissionsRepository;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use ApiPlatform\Core\DataPersister\ContextAwareDataPersisterInterface;
 
 final class DepotPersister implements ContextAwareDataPersisterInterface
@@ -29,16 +30,14 @@ final class DepotPersister implements ContextAwareDataPersisterInterface
     }
 
     public function persist($data, array $context = [])
-    {
-        // cumul sum compte after depot
-      $data->getComptes()->setSolde($data->getComptes()->getSolde() + $data->getMontantDeDepot());
+    {  
        
       $this->entityManager->persist($data);
+    
       $this->entityManager->flush();
     }
 
-    public function remove($data, array $context = [])
-    {
+    public function remove($data, array $context = []){
         $id = $data->getId() ;
         $depotDeleted = $this->depotRepository->findById($id) ;
         // dd($depotDeleted); 

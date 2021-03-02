@@ -43,6 +43,7 @@ final class ProfilPersister implements ContextAwareDataPersisterInterface
         // id profil users 
         $users = $this->userRepository->findBy(['profils'=>$id]) ;
         // dd($users);  
+
         // parcourir users 
         foreach ($users as $value) {
             $value->setArchivage(1) ;
@@ -51,4 +52,5 @@ final class ProfilPersister implements ContextAwareDataPersisterInterface
         }
 
     }
+    
 }

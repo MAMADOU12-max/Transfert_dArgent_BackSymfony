@@ -25,9 +25,8 @@ use ApiPlatform\Core\Annotation\ApiFilter;
  *         "createAgence"={
  *              "path"="/agence" ,
  *              "method"="POST" ,
- *              "denormalization_context"={"groups"={"agence:create"}} ,
  *              "security_post_denormalize"="is_granted('ROLE_ADMINSYSTEM')" ,
- *              "security_message"="Only admin system can create a an agnce" 
+ *              "security_message"="Only admin system can create an agence" 
  *          }, 
  *           "allAgence"={
  *              "path"="/agences" ,
@@ -48,6 +47,12 @@ use ApiPlatform\Core\Annotation\ApiFilter;
  *        "deleteAgenceById"={
  *              "path"="/agence/{id}", 
  *              "method"="DELETE" ,
+ *              "security_post_denormalize"="is_granted('ROLE_ADMINSYSTEM')" ,
+ *              "security_message"="Only admin system can block an agence" 
+ *         },
+ *         "updateAgence"={
+ *              "path"="/agence/{id}", 
+ *              "method"="PUT" ,
  *              "security_post_denormalize"="is_granted('ROLE_ADMINSYSTEM')" ,
  *              "security_message"="Only admin system can block an agence" 
  *         },
@@ -97,18 +102,10 @@ class Agence
      */
     private $users;
 
-    /**
-     * @ORM\OneToMany(targetEntity=Compte::class, mappedBy="agence",cascade={"persist"})
-     * @Groups({"allagence:read","agence:create","getAgencebyId:read","partAgencebyId:read"})
-     * @Assert\NotBlank
-     * @ApiSubresource
-     */
-    private $comptes;
 
     public function __construct()
     {
         $this->users = new ArrayCollection(); 
-        $this->comptes = new ArrayCollection();
         $this->disabled = false;
     }
 
@@ -182,35 +179,4 @@ class Agence
 
         return $this;
     }
-
-    /**
-     * @return Collection|Compte[]
-     */
-    public function getComptes(): Collection
-    {
-        return $this->comptes;
-    }
-
-    public function addCompte(Compte $compte): self
-    {
-        if (!$this->comptes->contains($compte)) {
-            $this->comptes[] = $compte;
-            $compte->setAgence($this);
-        }
-
-        return $this;
-    }
-
-    public function removeCompte(Compte $compte): self
-    {
-        if ($this->comptes->removeElement($compte)) {
-            // set the owning side to null (unless already changed)
-            if ($compte->getAgence() === $this) {
-                $compte->setAgence(null);
-            }
-        }
-
-        return $this;
-    }
-
 }

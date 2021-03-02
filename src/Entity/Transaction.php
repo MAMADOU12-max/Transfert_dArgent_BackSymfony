@@ -117,18 +117,6 @@ class Transaction
     private $codeTransaction;
 
     /**
-     * @ORM\ManyToOne(targetEntity=User::class, inversedBy="transactions")
-     * @Groups({"allTransaction:read","getTransactionById:read"})
-     */
-    private $retrait;
-
-    /**
-     * @ORM\ManyToOne(targetEntity=User::class, inversedBy="transactions")
-     * @Groups({"allTransaction:read","getTransactionById:read"})
-     */
-    private $deposer;
-
-    /**
      * @ORM\ManyToOne(targetEntity=Client::class, inversedBy="transactions")
      * @Groups({"allTransaction:read","getTransactionById:read"})
      */
@@ -154,6 +142,17 @@ class Transaction
      * @ORM\ManyToOne(targetEntity=Compte::class, inversedBy="transactions")
      */
     private $compteRetrait;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=User::class, inversedBy="transactions")
+     * @Groups({"allTransaction:read","getTransactionById:read"})
+     */
+    private $retraitUser;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=User::class, inversedBy="transac")
+     */
+    private $deposerUser;
 
     public function getId(): ?int
     {
@@ -279,30 +278,6 @@ class Transaction
 
         return $this;
     }
-    
-    public function getRetrait(): ?User
-    {
-        return $this->retrait;
-    }
-
-    public function setRetrait(?User $retrait): self
-    {
-        $this->retrait = $retrait;
-
-        return $this;
-    }
-
-    public function getDeposer(): ?User
-    {
-        return $this->deposer;
-    }
-
-    public function setDeposer(?User $deposer): self
-    {
-        $this->deposer = $deposer;
-
-        return $this;
-    }
 
     public function getRecuperer(): ?Client
     {
@@ -360,6 +335,30 @@ class Transaction
     public function setCompteRetrait(?Compte $compteRetrait): self
     {
         $this->compteRetrait = $compteRetrait;
+
+        return $this;
+    }
+
+    public function getRetraitUser(): ?User
+    {
+        return $this->retraitUser;
+    }
+
+    public function setRetraitUser(?User $retraitUser): self
+    {
+        $this->retraitUser = $retraitUser;
+
+        return $this;
+    }
+
+    public function getDeposerUser(): ?User
+    {
+        return $this->deposerUser;
+    }
+
+    public function setDeposerUser(?User $deposerUser): self
+    {
+        $this->deposerUser = $deposerUser;
 
         return $this;
     }

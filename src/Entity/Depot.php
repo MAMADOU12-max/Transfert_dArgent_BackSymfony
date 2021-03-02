@@ -22,16 +22,18 @@ use ApiPlatform\Core\Annotation\ApiFilter;
  *               "path"="/caissiers" ,
  *               "method"="GET",
  *               "normalization_context"={"groups"={"depot:read"}} ,
- *               "security_post_denormalize"="is_granted('ROLE_CAISSIER') || is_granted('ROLE_ADMINSYSTEM')" ,
+ *               "security_post_denormalize"="is_granted('ROLE_CAISSIER') || is_granted('ROLE_ADMINSYSTEM') || is_granted('ROLE_ADMINAGENCE')" ,
  *               "security_message"="Only admin system and caissier can do this action" ,
  *           },
- *           "depotByCaissier"= {
- *               
- *               "security_post_denormalize"="is_granted('ROLE_CAISSIER') || is_granted('ROLE_ADMINSYSTEM')" ,
- *               "security_message"="Only admin system and caissier can do this action", 
- *               "path"="/caissier/depot" ,
- *                "normalization_context"={"groups"={"depotbyCaissier:read"}} ,
- *               "method": "POST"
+ *           "depot"= {
+ *               "route_name"="depot" ,
+ *               "security_post_denormalize"="is_granted('ROLE_CAISSIER') || is_granted('ROLE_ADMINAGENCE')" ,
+ *               "security_message"="Only admin system and caissier can do this action"
+ *         } ,
+ *        "annulerDepot"= {
+ *               "route_name"="annulerDepot" ,
+ *               "security_post_denormalize"="is_granted('ROLE_CAISSIER') || is_granted('ROLE_ADMINAGENCE')" ,
+ *               "security_message"="Only admin system and caissier can do this action"
  *         } 
  *     },
  *     itemOperations={
@@ -39,13 +41,13 @@ use ApiPlatform\Core\Annotation\ApiFilter;
 *                  "path"="/caissiers/{id}" ,
 *                   "method"="GET",
 *                   "normalization_context"={"groups"={"getDepotById:read"}},
-*                   "security_post_denormalize"="is_granted('ROLE_CAISSIER') || is_granted('ROLE_ADMINSYSTEM')" ,
+*                   "security_post_denormalize"="is_granted('ROLE_CAISSIER') || is_granted('ROLE_ADMINSYSTEM') || is_granted('ROLE_ADMINAGENCE')" ,
 *                  "security_message"="Only admin system and caissier can do this action" 
 *            },
 *          "deleteDepotById"={
 *                  "path"="/caissiers/{id}" ,
 *                   "method"="DELETE",
-*                   "security_post_denormalize"="is_granted('ROLE_ADMINSYSTEM')" ,
+*                   "security_post_denormalize"="is_granted('ROLE_ADMINSYSTEM') || is_granted('ROLE_ADMINAGENCE') || is_granted('ROLE_CAISSIER')" ,
 *                  "security_message"="Only admin system can do delete" 
 *            }   
 *     }

@@ -35,17 +35,20 @@ final class AgencePersister implements ContextAwareDataPersisterInterface
     {
         // if($context["collection_operation_name"]==="POST"){}
          
-            if($data->getComptes()[0]) {
+            // if($data->getComptes()[0]) {
                
-                if($data->getComptes()[0]->getSolde() > 700000) {
-                    // dd($data->getComptes()[0]->getSolde());
-                     $this->entityManager->persist($data);
-                     $this->entityManager->flush();
-                     return new JsonResponse("success",201) ;
-                }
-                return new JsonResponse("the balance must be greater than 700,000",400) ;
-            }
-            return new JsonResponse("You must add at least one compte",400) ;         
+            //     if($data->getComptes()[0]->getSolde() > 700000) {
+            //         // dd($data->getComptes()[0]->getSolde());
+            //          $this->entityManager->persist($data);
+            //          $this->entityManager->flush();
+            //          return new JsonResponse("success",201) ;
+            //     }
+            //     return new JsonResponse("the balance must be greater than 700,000",400) ;
+            // }
+            // return new JsonResponse("You must add at least one compte",400) ;   
+            $this->entityManager->persist($data);
+            $this->entityManager->flush();
+            return new JsonResponse("success",201) ;      
     
     }
 
@@ -57,7 +60,6 @@ final class AgencePersister implements ContextAwareDataPersisterInterface
         $agenceBlocked->setDisabled(1);
         //  dd($agenceBlocked);
         $this->entityManager->persist($data);
-        $this->entityManager->flush();
 
         // block ccounts 
         $comptesAgences = $this->compteRepository->findBy(['agence'=>$id]);
@@ -65,7 +67,6 @@ final class AgencePersister implements ContextAwareDataPersisterInterface
         foreach ($comptesAgences as $value) {
             $value->setDisabled(1);
             $this->entityManager->persist($value);
-            $this->entityManager->flush();
         }
 
         //block users
@@ -73,10 +74,10 @@ final class AgencePersister implements ContextAwareDataPersisterInterface
         // dd($users);
         foreach ($users as $value) {
             $value->setArchivage(1);
-            $this->entityManager->persist($value);
-            $this->entityManager->flush();
+            $this->entityManager->persist($value);     
         }
 
+        $this->entityManager->flush();
         return new JsonResponse("This agence has been blocked with success",200) ;  
         
     }

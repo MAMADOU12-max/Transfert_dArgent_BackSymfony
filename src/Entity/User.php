@@ -140,11 +140,23 @@ class User implements UserInterface
      */
     private $agence;
 
+    /**
+     * @ORM\OneToMany(targetEntity=Transaction::class, mappedBy="retraitUser")
+     */
+    private $transactions;
+
+    /**
+     * @ORM\OneToMany(targetEntity=Transaction::class, mappedBy="deposerUser")
+     */
+    private $transac;
+
     public function __construct()
     {
         $this->depots = new ArrayCollection();
         $this->comptes = new ArrayCollection();
         $this->Archivage = false ;
+        $this->transactions = new ArrayCollection();
+        $this->transac = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -404,6 +416,66 @@ class User implements UserInterface
     public function setAgence(?Agence $agence): self
     {
         $this->agence = $agence;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Transaction[]
+     */
+    public function getTransactions(): Collection
+    {
+        return $this->transactions;
+    }
+
+    public function addTransaction(Transaction $transaction): self
+    {
+        if (!$this->transactions->contains($transaction)) {
+            $this->transactions[] = $transaction;
+            $transaction->setRetraitUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTransaction(Transaction $transaction): self
+    {
+        if ($this->transactions->removeElement($transaction)) {
+            // set the owning side to null (unless already changed)
+            if ($transaction->getRetraitUser() === $this) {
+                $transaction->setRetraitUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Transaction[]
+     */
+    public function getTransac(): Collection
+    {
+        return $this->transac;
+    }
+
+    public function addTransac(Transaction $transac): self
+    {
+        if (!$this->transac->contains($transac)) {
+            $this->transac[] = $transac;
+            $transac->setDeposerUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTransac(Transaction $transac): self
+    {
+        if ($this->transac->removeElement($transac)) {
+            // set the owning side to null (unless already changed)
+            if ($transac->getDeposerUser() === $this) {
+                $transac->setDeposerUser(null);
+            }
+        }
 
         return $this;
     }

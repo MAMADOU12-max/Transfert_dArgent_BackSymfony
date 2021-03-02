@@ -23,28 +23,34 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  *                "path"="/compte" ,
  *                "method"="POST" ,
  *                "denormalization_context"={"groups"={"comtpe:read"}} ,
- *                "security_post_denormalize"="is_granted('ROLE_ADMINSYSTEM')" ,
- *                "security_message"="Only admin system can create a count" 
+ *                "security_post_denormalize"="is_granted('ROLE_ADMINAGENCE') || is_granted('ROLE_ADMINSYSTEM')",
+ *                "security_message"="Only admin system can create an account" 
  *           },
   *          "getAllCompte"={
  *               "path"="/comptes" ,
  *               "method"="GET" ,
- *                 "security_post_denormalize"="is_granted('ROLE_ADMINSYSTEM')" ,
- *                "security_message"="Only admin system can see counts" 
+ *                 "security_post_denormalize"="is_granted('ROLE_ADMINAGENCE') || is_granted('ROLE_ADMINSYSTEM')",
+ *                "security_message"="Only admin system can see accounts" 
  *           }
  *     },
  *    itemOperations={
  *          "getComptebyId"={
  *               "path"="/comptes/{id}" ,
  *               "method"="GET" ,
- *                "security_post_denormalize"="is_granted('ROLE_ADMINSYSTEM')" ,
+ *                "security_post_denormalize"="is_granted('ROLE_ADMINAGENCE') || is_granted('ROLE_ADMINSYSTEM')",
  *                "security_message"="Only admin system can see a a count" 
  *           },
  *           "bloquerCompte"={
  *               "path"="/comptes/{id}" ,
  *               "method"="DELETE" ,
- *                "security_post_denormalize"="is_granted('ROLE_ADMINSYSTEM')" ,
- *                "security_message"="Only admin system can block a a count" 
+ *                "security_post_denormalize"="is_granted('ROLE_ADMINAGENCE') || is_granted('ROLE_ADMINSYSTEM')" ,
+ *                "security_message"="Only admin system can block an account" 
+ *          },
+ *           "editCompte"={
+ *               "path"="/comptes/{id}" ,
+ *               "method"="PUT" ,
+ *                "security_post_denormalize"="is_granted('ROLE_ADMINAGENCE') || is_granted('ROLE_ADMINSYSTEM')" ,
+ *                "security_message"="Only admin system can update an account" 
  *           
  *          }
  *    }
@@ -81,6 +87,8 @@ class Compte
      
     /**
      * @ORM\ManyToOne(targetEntity=User::class, inversedBy="comptes")
+     * @ApiSubresource
+     * @Groups({"comtpe:read"})
      */
     private $users;
 
@@ -104,13 +112,12 @@ class Compte
     private $disabled;
 
     /**
-     * @ORM\ManyToOne(targetEntity=Agence::class, inversedBy="comptes", cascade={"persist"})
-    * @Groups({"comtpe:read"})
+     * @ORM\OneToOne(targetEntity=Agence::class, cascade={"persist", "remove"})
+     * @Groups({"comtpe:read"})
     * @Assert\NotBlank
     * @ApiSubresource
      */
     private $agence;
-
 
     public function __construct()
     {

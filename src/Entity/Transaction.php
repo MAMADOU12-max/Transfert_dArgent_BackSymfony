@@ -20,18 +20,28 @@ use Symfony\Component\Validator\Constraints as Assert;
  *          "doTransaction"={
  *                "route_name"="doTransaction" ,
  *                "method"="POST",
- *                   "deserialize"= false
+ *                 "deserialize"= false,
+ *                 "security_post_denormalize"="is_granted('ROLE_USERAGENCE')" ,
+ *                 "security_message"="Only admin system and caissier can do this action" ,
  *           } ,
  *          "recupTransaction"={
  *                "route_name"="recupTransaction" ,
  *                "method"="PUT",
- *                   "deserialize"= false
+ *                "deserialize"= false,
+ *                "security_post_denormalize"="is_granted('ROLE_USERAGENCE')" ,
+ *               "security_message"="Only user agence can do this action" 
  *           },
- *           "getAllTransaction"={
+ *           "annulerTransaction"={
+ *                "route_name"="annulerTransaction" ,
+ *                 "deserialize"= false,
+ *                "security_post_denormalize"="is_granted('ROLE_CAISSIER')" ,
+ *                "security_message"="Only admin system and caissier can do this action"
+ *            },
+ *            "getAllTransaction"={
  *                  "path"="/transactions" ,
 *                   "method"="GET" ,
 *                   "normalization_context"={"groups"={"allTransaction:read"}} ,
- *          }
+ *            }
  *     },
  *    itemOperations={
  *       "getTransactionById"={

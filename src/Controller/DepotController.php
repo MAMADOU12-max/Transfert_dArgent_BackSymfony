@@ -72,18 +72,18 @@ class DepotController extends AbstractController {
         
         $focusCompte[0]->setSolde($focusCompte[0]->getSolde() + $montant);
         // dd($focusCompte);
+
         $this->manager->persist($focusCompte[0]);
-
         $this->manager->flush();
-
         return $this->json("Votre dépôt a été fait avec success!",201);
 
     } 
 
-    // -----------------------------------------------FIN ADD DEPOT -------------------------------------------------------------------//
+    // ------------------------------------------------- FIN ADD DEPOT -------------------------------------------------------------------//
 
 
-    // -----------------------------------------------ANNULER DEPOT -------------------------------------------------------------------//
+
+    // ------------------------------------------------- ANNULER DEPOT -------------------------------------------------------------------//
 
     /**
      * @Route(
@@ -113,10 +113,10 @@ class DepotController extends AbstractController {
         if($lastDepotfromUser == $lastDepotfromBd) {
             
             // verify action's date
-            $date = new \DateTime();         
-            if($date->format('Y-m-d') > $lastDepotfromUser->getDateDepot()->format('Y-m-d')) {
-                return $this->json('Vous ne pouvez plus éffectuer annuler le depôt car le delaie d\'action est expiré!',400);
-            }
+            // $date = new \DateTime();         
+            // if($date->format('Y-m-d') > $lastDepotfromUser->getDateDepot()->format('Y-m-d')) {
+            //     return $this->json('Vous ne pouvez plus éffectuer annuler le depôt car le delaie d\'action est expiré!',400);
+            // }
             
 
             // find account for retire money
@@ -134,7 +134,7 @@ class DepotController extends AbstractController {
 
             $findIt = $this->depotRepository->findById($lastDepotfromUser->getId()); // find depot
             // dd($findIt[0]);
-            $this->manager->remove($findIt[0]);
+             $this->manager->remove($findIt[0]);
              $this->manager->flush();
             return $this->json("Le dêpot est bien annulé!!",200);
         } else {

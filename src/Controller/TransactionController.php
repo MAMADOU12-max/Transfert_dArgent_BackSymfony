@@ -198,8 +198,8 @@ class TransactionController extends AbstractController
  
         $this->manager->persist($transaction);
         $this->manager->flush();
-       $json = json_encode('Vous venez d\'envoyer '.$realMontant.' à '.$dataPostman->nomCompletBeneficiaire.' sur le numèro '.$dataPostman->phoneBeneficiaire.'. Le code de transaction est '.$genereCodeTransaction.'');
-       $array = json_decode($json, true);
+        $json = json_encode('Vous venez d\'envoyer '.$realMontant.' à '.$dataPostman->nomCompletBeneficiaire.' sur le numèro '.$dataPostman->phoneBeneficiaire.'. Le code de transaction est '.$genereCodeTransaction.'');
+        $array = json_decode($json, true);
         return $this->json("le depot est bien effectué", 201);
         
     }
@@ -275,7 +275,9 @@ class TransactionController extends AbstractController
                 $this->manager->persist($summarizeTransaction);
 
                 $this->manager->flush();
-                 return $this->json("retrait reussit", 201);
+                $json = json_encode('Vous venez d\'envoyer '.$realMontant.' à '.$dataPostman->nomCompletBeneficiaire.' sur le numèro '.$dataPostman->phoneBeneficiaire.'. Le code de transaction est '.$genereCodeTransaction.'');
+                $array = json_decode($json, true);
+                 return $this->json($array, 200);
             }
            
         } else {
@@ -340,6 +342,74 @@ class TransactionController extends AbstractController
     }
 
     /*  ***************************************************** End Get Transaction By Code *********************************************************** */
+
+
+
+
+    /*  ********************************************************** Annuler Transaction ************************************************************** */
+   
+        /**
+     * @Route(
+     *      name="annulerTransaction" ,
+     *      path="/api/transaction/{code}/annuler" ,
+     *     methods={"PUT"} ,
+     *     defaults={
+     *         "__controller"="App\Controller\TransactionController::annulerTransaction",
+     *         "_api_resource_class"=Transaction::class ,
+     *         "_api_collection_operation_name"="annulerTransaction"
+     *     }
+     *)
+     */
+    public function annulerTransaction(Request $request, SerializerInterface $serializer, $code)
+    {
+
+        $transaction =  $this->transactionRepository->findTransactionByCode($code) ;
+
+        if($transaction) {
+            if($transaction->getEtat() == "Reussie") {
+                return $this->json("Cette transaction est déjà retirée ", 400);  
+           } else if($transaction->getEtat() == "Annulée"){
+                return $this->json("Cette transaction est déjà annulée ", 400);  
+           } else {
+               // find account
+               $focusCompte = $this->compteRepository->findById($transaction->getCompteEnvoie()->getId())[0]; 
+               
+               $compteFocus =  $this->compteRepository->findOneBy(['id'=>(int)$focusCompte->getId()]);
+               $montant = ($compteFocus->getSolde() +$transaction->getMontant() + $transaction->getTtc()) - $transaction->getFraisEnvoie();
+               $compteFocus->setSolde($montant);
+               $this->manager->persist($compteFocus);
+               
+               //update client received  
+               $clientReceiver = $this->clientRepository->find($transaction->getRecuperer()->getId());
+               $clientReceiver->setAction("annulée");
+               $this->manager->persist($clientReceiver);
+               $nomClient = $clientReceiver->getNomComplet();
+               $numClient = $clientReceiver->getPhone();
+
+               $time = new \DateTime();
+               $transaction->setDateAnnulation($time);
+               $transaction->setMontant($transaction->getMontant() + $transaction->getTtc());
+               $transaction->setEtat("Annulée");
+               $transaction->setFraisEtat(0);   
+               $transaction->setFraisSystem(0); 
+               $transaction->setFraisEnvoie(0);  
+               $transaction->setFraisRetrait(0);
+               $transaction->setTtc(0);
+               $this->manager->persist($transaction);
+               
+               $this->manager->flush();
+               $json = json_encode('Vous venez d\'annuler la transaction de '.$transaction->getMontant().' que vous aviez envoyé à '.$nomClient.' sur le numèro '.$numClient.'. \n Date d\'annulation: '.$time->format('Y-m-d H:i:s').' . Merci pour votre confiance!');
+               $array = json_decode($json, true);
+               return $this->json($array, 200);
+           }
+
+        } else {
+            return $this->json("Ce code n'est pas valide", 400);  
+        }
+
+    }
+   
+    /*  ***************************************************** End Annuler Transaction *********************************************************** */
 
 }
 

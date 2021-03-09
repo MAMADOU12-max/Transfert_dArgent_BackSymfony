@@ -27,12 +27,12 @@ use ApiPlatform\Core\Annotation\ApiFilter;
  *           },
  *           "depot"= {
  *               "route_name"="depot" ,
- *               "security_post_denormalize"="is_granted('ROLE_CAISSIER') || is_granted('ROLE_ADMINAGENCE')" ,
+ *               "security_post_denormalize"="is_granted('ROLE_CAISSIER')" ,
  *               "security_message"="Only admin system and caissier can do this action"
  *         } ,
  *        "annulerDepot"= {
  *               "route_name"="annulerDepot" ,
- *               "security_post_denormalize"="is_granted('ROLE_CAISSIER') || is_granted('ROLE_ADMINAGENCE')" ,
+ *               "security_post_denormalize"="is_granted('ROLE_CAISSIER')" ,
  *               "security_message"="Only admin system and caissier can do this action"
  *         } 
  *     },

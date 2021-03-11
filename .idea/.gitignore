@@ -1,0 +1,8 @@
+# Default ignored files
+/shelf/
+/workspace.xml
+# Datasource local storage ignored files
+/../../../../../../../../../:\Users\modou\OneDrive\Bureau\Code\Fil_Rouge_ODC_SymfonyAndIonic_TransfertDargent\Transfert_dArgent_BackSymfony\.idea/dataSources/
+/dataSources.local.xml
+# Editor-based HTTP Client requests
+/httpRequests/

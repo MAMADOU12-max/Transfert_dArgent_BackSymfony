@@ -54,9 +54,44 @@ class TransactionController extends AbstractController
          }
     }
 
+
     /*  ******************************************************************* End Get Frais  ********************************************************** */
 
+    /*  ************************************ Return Frais ******************************************* */
 
+     /**
+     * @Route(
+     *      name="returnFrais" ,
+     *      path="/api/fraisis" ,
+     *       methods={"POST"} 
+     *)
+     */
+    //,
+   //  *       defaults={
+   //  *         "__controller"="App\Controller\TransactionController::returnFrais",
+    // *         "_api_resource_class"=Frais::class ,
+    // *         "_api_collection_operation_name"="returnFrais"
+   //  *     }
+    public function retunFrais(Request $request) {
+        $montantPostman =  json_decode($request->getContent());
+        if($montantPostman->montant < 0) {
+            return $this->json("le montant ne peut pas être négatif!", 400);  
+        }
+        if(!is_numeric($montantPostman->montant)) {
+            return $this->json("Vous devez founir un nombre valide, non une chaine de caractère!", 400); 
+        }
+        if($montantPostman->montant > 2000000) {
+            $frais = ((int)($montantPostman->montant)) * 0.02;
+            return $this->json($frais, 200);
+        }
+
+        $frais  = $this->getTarifs((int)($montantPostman->montant));
+        //$array = json_decode($frais, true);
+        return $this->json($frais, 200);      
+    }
+
+    /*  *************************************** End Return Frais  ************************************* */
+    
 
     /*  ************************************************************* Get Commissions  ************************************************************** */
     
@@ -275,7 +310,7 @@ class TransactionController extends AbstractController
                 $this->manager->persist($summarizeTransaction);
 
                 $this->manager->flush();
-                $json = json_encode('Vous venez d\'envoyer '.$realMontant.' à '.$dataPostman->nomCompletBeneficiaire.' sur le numèro '.$dataPostman->phoneBeneficiaire.'. Le code de transaction est '.$genereCodeTransaction.'');
+                $json = json_encode('Vous venez de retirer l\'argent...!!');
                 $array = json_decode($json, true);
                  return $this->json($array, 200);
             }

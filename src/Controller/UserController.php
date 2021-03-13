@@ -1,9 +1,9 @@
 <?php
-
 namespace App\Controller;
 
 use App\Entity\User;
 use App\Entity\Profil;
+use App\Entity\Agence;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -65,7 +65,7 @@ class UserController extends AbstractController
 
         //get profil
         $profil = $user["profils"] ;
-        // dd($profil);
+        $agence = $user["agence"] ;
 
         //Instance User
         $newUser = new User();
@@ -100,10 +100,10 @@ class UserController extends AbstractController
         
 
         $newUser->setProfils($this->manager->getRepository(Profil::class)->findOneBy(['libelle'=>$profil])) ;
+        $newUser->setAgence($this->manager->getRepository(Agence::class)->findOneBy(['id'=>$agence])) ;
      
         $em = $this->getDoctrine()->getManager();
-        $em->persist($newUser);
-        // $this->manager->persister()
+        $em->persist($newUser); 
         $em->flush();
 
         return $this->json("success",201);

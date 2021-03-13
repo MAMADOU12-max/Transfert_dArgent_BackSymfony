@@ -72,7 +72,7 @@ class Agence
      * @ORM\Id
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
-     * @Groups({"allagence:read","getAgencebyId:read"})
+     * @Groups({"allagence:read","getAgencebyId:read","usersById:read"})
      */
     private $id;
 

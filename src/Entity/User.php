@@ -6,6 +6,7 @@ use Doctrine\ORM\Mapping as ORM;
 use App\Repository\UserRepository;
 use ApiPlatform\Core\Annotation\ApiFilter;
 use Doctrine\Common\Collections\Collection;
+use ApiPlatform\Core\Annotation\ApiSubresource;
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Serializer\Annotation\Groups;
@@ -132,11 +133,14 @@ class User implements UserInterface
 
     /**
      * @ORM\OneToMany(targetEntity=Compte::class, mappedBy="users")
+     * @Groups({"usersById:read"})
      */
     private $comptes;
 
     /**
      * @ORM\ManyToOne(targetEntity=Agence::class, inversedBy="users")
+     * @Groups({"usersById:read"})
+     * @ApiSubresource
      */
     private $agence;
 

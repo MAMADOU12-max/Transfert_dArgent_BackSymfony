@@ -65,7 +65,7 @@ class Compte
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
      * @Groups({"allTransaction:read","getTransactionById:read","depot:read","getDepotById:read","partAgencebyId:read",
-     * "getAgencebyId:read"})
+     * "getAgencebyId:read","usersById:read"})
      */
     private $id;
 

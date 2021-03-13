@@ -104,7 +104,8 @@ class UserController extends AbstractController
      
         $em = $this->getDoctrine()->getManager();
         $em->persist($newUser); 
-        $em->flush();
+        dd($newUser);
+        //$em->flush();
 
         return $this->json("success",201);
 

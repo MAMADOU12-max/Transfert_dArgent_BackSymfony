@@ -119,12 +119,22 @@ class Compte
      */
     private $agence;
 
+    /**
+     * @ORM\Column(type="string")
+     * @Groups({"allTransaction:read","getTransactionById:read","depot:read","getDepotById:read"
+     * ,"comtpe:read","agence:create","allagence:read","getAgencebyId:read"})
+     */
+    private $miseajour;
+
     public function __construct()
     {
         $this->depots = new ArrayCollection();
         $this->adminSystem = new ArrayCollection();
         $this->transactions = new ArrayCollection();
         $this->disabled = false;
+        $time = new \DateTime();
+        $dateFormatted = date_format($time,"d/m/Y H:i");
+        $this->miseajour = $dateFormatted;
     }
 
     public function getId(): ?int
@@ -251,4 +261,17 @@ class Compte
 
         return $this;
     }
+
+    public function getMiseajour(): ?string
+    {
+        return $this->miseajour;
+    }
+
+    public function setMiseajour(?string $miseajour): self
+    {
+        $this->miseajour = $miseajour;
+
+        return $this;
+    }
+
 }

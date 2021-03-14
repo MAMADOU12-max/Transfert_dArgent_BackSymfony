@@ -15,7 +15,7 @@ class CompteController extends AbstractController
      * @Route(
      *      name="getCompteByAgence" ,
      *      path="/api/compte/{idAgence}/agence" ,
-     *     methods={"POST"} 
+     *     methods={"GET"} 
      *)
     */
      // *     defaults={
@@ -24,10 +24,8 @@ class CompteController extends AbstractController
      //    *         "_api_collection_operation_name"="getCompteByAgence"
        // *     }
     public function getCompteByAgence( Request $request, CompteRepository $compteRepository, $idAgence) {
-         $idAgence =  json_decode($request->getContent());
-         $compte = $compteRepository->findCompteByidAgence($idAgence->idAgence);
-         dd($compte);
-         $array = json_decode($compte, true);
-         return $this->json($array, 200);
+         $compte = $compteRepository->findCompteByidAgence($idAgence);
+         //dd($compte);
+         return $this->json($compte, 200);
     }
 }

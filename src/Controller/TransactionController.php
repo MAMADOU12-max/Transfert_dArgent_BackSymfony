@@ -181,31 +181,35 @@ class TransactionController extends AbstractController
         $fraisRetrait = $fraisEnvoieHT * $commissionRetrait ;
         //dd('frais'. $fraisEnvoieHT ,'frais etat'.$fraisEtat,'frais envoie'. $fraisEnvoie ,'frais system'. $fraisSystem,'frais retrait'. $fraisRetrait,);
 
-        // refactor compte
-        $compteFocus->setSolde(($compteFocus->getSolde() - $montantToSended) + $fraisEnvoie);
-
         // code and date
         $genereCodeTransaction = $this->_genereCode();
-        $date = new \DateTime('now');
+        $date = new \DateTime('now') ; 
+         $dateFormatted = date_format($date,"d/m/Y H:i");
+        //$dateFormatted = (new \DateTime('now'))->format("d/m/Y H:i") ;
+         //dd($dateFormatted);
+
+        // refactor compte
+        $compteFocus->setSolde(($compteFocus->getSolde() - $montantToSended) + $fraisEnvoie);
+        $compteFocus->setMiseajour($dateFormatted);
 
         // client who send
         $clientSender = new Client() ;
-        $clientSender->setNomComplet($dataPostman->nomCompletEmetteur); 
+        $clientSender->setNomComplet($dataPostman->nomEmetteur.' '.$dataPostman->prenomEmetteur); 
         $clientSender->setPhone($dataPostman->phoneEmetteur);
         $clientSender->setIdentityNumber($dataPostman->identityNumberEmetteur);
         $clientSender->setCodeTransaction($genereCodeTransaction);  
         $clientSender->setMontant($realMontant);
         $clientSender->setAction('depot');
         $this->manager->persist($clientSender);
-
+    
         // client who must receive
         $clientReceiver = new Client() ;
-        $clientReceiver->setNomComplet($dataPostman->nomCompletBeneficiaire);
+        $clientReceiver->setNomComplet($dataPostman->nomBeneficaire.' '.$dataPostman->prenomBeneficaire);
         $clientReceiver->setPhone($dataPostman->phoneBeneficiaire);
         // $clientReceiver->setIdentityNumber($receiver->identityNumber);
         $clientReceiver->setCodeTransaction($genereCodeTransaction);
         $this->manager->persist($clientReceiver);
-       
+        
         // transaction
         $transaction = new Transaction;
         $transaction->setMontant($realMontant);
@@ -232,10 +236,10 @@ class TransactionController extends AbstractController
 
  
         $this->manager->persist($transaction);
-        $this->manager->flush();
-        $json = json_encode('Vous venez d\'envoyer '.$realMontant.' à '.$dataPostman->nomCompletBeneficiaire.' sur le numèro '.$dataPostman->phoneBeneficiaire.'. Le code de transaction est '.$genereCodeTransaction.'');
+         $this->manager->flush();
+        $json = json_encode('Vous venez d\'envoyer '.$realMontant.' à '.$dataPostman->nomBeneficaire.' '.$dataPostman->prenomBeneficaire.' sur le numèro '.$dataPostman->phoneBeneficiaire.'. Le code de transaction est '.$genereCodeTransaction.'');
         $array = json_decode($json, true);
-        return $this->json("le depot est bien effectué", 201);
+        return $this->json($array, 201);
         
     }
 
@@ -284,6 +288,7 @@ class TransactionController extends AbstractController
 
 
                 $time = new \DateTime();
+                $dateFormatted = date_format($time,"d/m/Y H:i");
                 $transactionDo->setDateRetrait($time);
                 $transactionDo->setEtat("Reussie");
                 $transactionDo->setCompteRetrait($focusCompte);
@@ -293,6 +298,7 @@ class TransactionController extends AbstractController
                 
                 $compteFocus =  $this->compteRepository->findOneBy(['id'=>(int)$focusCompte->getId()]);
                 $compteFocus->setSolde($compteFocus->getSolde() +$transactionDo->getMontant() + $transactionDo->getFraisRetrait());
+                $compteFocus->setMiseajour($dateFormatted);
                 $this->manager->persist($compteFocus);
                 //  dd($compteFocus);
                 

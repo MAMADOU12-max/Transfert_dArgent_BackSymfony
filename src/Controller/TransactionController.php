@@ -76,11 +76,9 @@ class TransactionController extends AbstractController
         $montantPostman =  json_decode($request->getContent());
         if($montantPostman->montant < 0) {
             return $this->json("le montant ne peut pas être négatif!", 400);  
-        }
-        if(!is_numeric($montantPostman->montant)) {
+        } else if(!is_numeric($montantPostman->montant)) {
             return $this->json("Vous devez founir un nombre valide, non une chaine de caractère!", 400); 
-        }
-        if($montantPostman->montant > 2000000) {
+        } else if($montantPostman->montant > 2000000) {
             $frais = ((int)($montantPostman->montant)) * 0.02;
             return $this->json($frais, 200);
         }
@@ -112,18 +110,19 @@ class TransactionController extends AbstractController
     
     public function _genereCode() {
          // genere code transaction
-         $rand1 = rand(1, 100);  // choose number beetween 10-1000
-         $rand2 = rand(100, 1000);  // choose number beetween 1000-1000
+         $rand1 = rand(1, 99);  // choose number beetween 10-1000
+         $rand2 = rand(1, 99);  // choose number beetween 1000-1000
          $date = new \DateTime('now');
-         $genereCodeTransaction = str_shuffle($rand1.date_format($date, 'YmdHi').$rand2);
+         $genereCodeTransaction = $rand1.date_format($date, 'mdHis').$rand2;
+       //  $genereCodeTransaction = str_shuffle($rand1.date_format($date, 'YmdHi').$rand2);
         return $genereCodeTransaction;
     } 
     
-    /*  **************************************************************** End Genere Code  *********************************************************** */
+    /*  ******************************** End Genere Code  ******************************************** */
 
 
 
-    /*  ****************************************************************** Do Transaction  ********************************************************** */
+    /*  ********************************** Do Transaction  ******************************************* */
 
     /**
      * @Route(
@@ -135,7 +134,7 @@ class TransactionController extends AbstractController
      *         "_api_resource_class"=Transaction::class ,
      *         "_api_collection_operation_name"="doTransaction"
      *     }
-     *)
+     *  )
      */
     public function doTransaction(Request $request, SerializerInterface $serializer)
     {
@@ -166,7 +165,7 @@ class TransactionController extends AbstractController
             $realMontant = $montantToSended - $fraisEnvoieHT;
         } else if($montantToSended >= 2000000) {
              $fraisEnvoieHT = $montantToSended * 0.02;
-            $realMontant = $montantToSended - $fraisEnvoieHT  ;
+             $realMontant = $montantToSended - $fraisEnvoieHT  ;
         }    
        
         // Commissions;     
@@ -186,7 +185,7 @@ class TransactionController extends AbstractController
         $date = new \DateTime('now') ; 
          $dateFormatted = date_format($date,"d/m/Y H:i");
         //$dateFormatted = (new \DateTime('now'))->format("d/m/Y H:i") ;
-         //dd($dateFormatted);
+        // dd($genereCodeTransaction);
 
         // refactor compte
         $compteFocus->setSolde(($compteFocus->getSolde() - $montantToSended) + $fraisEnvoie);
@@ -194,7 +193,8 @@ class TransactionController extends AbstractController
 
         // client who send
         $clientSender = new Client() ;
-        $clientSender->setNomComplet($dataPostman->nomEmetteur.' '.$dataPostman->prenomEmetteur); 
+        $clientSender->setNom($dataPostman->nomEmetteur); 
+        $clientSender->setPrenom($dataPostman->prenomEmetteur);
         $clientSender->setPhone($dataPostman->phoneEmetteur);
         $clientSender->setIdentityNumber($dataPostman->identityNumberEmetteur);
         $clientSender->setCodeTransaction($genereCodeTransaction);  
@@ -204,7 +204,8 @@ class TransactionController extends AbstractController
     
         // client who must receive
         $clientReceiver = new Client() ;
-        $clientReceiver->setNomComplet($dataPostman->nomBeneficaire.' '.$dataPostman->prenomBeneficaire);
+        $clientReceiver->setNom($dataPostman->nomBeneficaire);
+        $clientReceiver->setPrenom($dataPostman->prenomBeneficaire);
         $clientReceiver->setPhone($dataPostman->phoneBeneficiaire);
         // $clientReceiver->setIdentityNumber($receiver->identityNumber);
         $clientReceiver->setCodeTransaction($genereCodeTransaction);
@@ -300,7 +301,7 @@ class TransactionController extends AbstractController
                 $compteFocus->setSolde($compteFocus->getSolde() +$transactionDo->getMontant() + $transactionDo->getFraisRetrait());
                 $compteFocus->setMiseajour($dateFormatted);
                 $this->manager->persist($compteFocus);
-                //  dd($compteFocus);
+               // dd($compteFocus->getMiseajour());
                 
                 //update client received  
                 $clientReceiver = $this->clientRepository->find($transactionDo->getRecuperer()->getId());
@@ -315,10 +316,10 @@ class TransactionController extends AbstractController
                 $summarizeTransaction->setType("retrait");
                 $this->manager->persist($summarizeTransaction);
 
-                $this->manager->flush();
-                $json = json_encode('Vous venez de retirer l\'argent...!!');
-                $array = json_decode($json, true);
-                 return $this->json($array, 200);
+                 $this->manager->flush();
+                // $json = json_encode('Vous venez de retirer l\'argent la somme de  !!');
+                return $this->json("Vous avez retiré ".$transactionDo->getMontant()." par le distributeur N°".$focusCompte->getIdentifiantCompte()."."."\n"."Date de retrait: ".$focusCompte->getMiseajour()."", 200);
+
             }
            
         } else {
@@ -352,30 +353,38 @@ class TransactionController extends AbstractController
         $transaction =  $this->transactionRepository->findTransactionByCode($code) ;
 
         if($transaction) {
-           
-            $recuperator = $this->clientRepository->findById($transaction->getRecuperer()->getId());
-            // transaction client
-            if($recuperator) {
-                $envoyer = $this->clientRepository->findById($transaction->getEnvoyer()->getId());
-                // browser data   
-                foreach($envoyer as $env ) {
-                    foreach($recuperator as $recup) {
-                        array_push($data, $transaction, $env, $recup );
-                    }
-                }
-                return $this->json($data , 200);
-            } else {
-                $deposer = $this->clientRepository->findById($transaction->getDeposer()->getId());
-                $retrait = $this->clientRepository->findById($transaction->getRetrait()->getId());
-                
-                foreach($deposer as $dep) {
-                    foreach($retrait as $ret) {
-                        array_push($data, $transaction, $dep, $ret);
-                    }
-                }
-                return $this->json($data , 200);
-            }
 
+           if($transaction->getEtat() === "Encours") {
+
+                $recuperator = $this->clientRepository->findById($transaction->getRecuperer()->getId());
+                // transaction client
+                if($recuperator) {
+                    $envoyer = $this->clientRepository->findById($transaction->getEnvoyer()->getId());
+                    // browser data   
+                    foreach($envoyer as $env ) {
+                        foreach($recuperator as $recup) {
+                            array_push($data, $transaction, $env, $recup );
+                        }
+                    }
+                    return $this->json($data , 200);
+                } else {
+                    $deposer = $this->clientRepository->findById($transaction->getDeposer()->getId());
+                    $retrait = $this->clientRepository->findById($transaction->getRetrait()->getId());
+                    
+                    foreach($deposer as $dep) {
+                        foreach($retrait as $ret) {
+                            array_push($data, $transaction, $dep, $ret);
+                        }
+                    }
+                    return $this->json($data , 200);
+                }
+
+            } else if($transaction->getEtat() === "Reussie") {
+                return $this->json("Cette transaction est achevée. L'argent est déjà retiré!", 400); 
+            }  else {
+                return $this->json("Cette transaction a été annulée", 400);
+            }  
+           
         } else {
             return $this->json("Ce code n'est pas valide", 400);  
         }

@@ -4,7 +4,6 @@ namespace App\Controller;
 
 use App\Entity\Depot;
 use App\Repository\UserRepository;
-use App\Controller\DepotController;
 use App\Repository\DepotRepository;
 use App\Repository\CompteRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -66,16 +65,19 @@ class DepotController extends AbstractController {
         //get id agence of utilisateur
         $idAgence = $this->userRepository->findOneBy(['id'=>(int)$utilisateur])->getAgence()->getId();
         $focusCompte = $this->compteRepository->findBy(['agence'=>$idAgence]); //reper account
-    
+        
         $newDepot->setComptes($focusCompte[0]);
         $this->manager->persist($newDepot);
         
         $focusCompte[0]->setSolde($focusCompte[0]->getSolde() + $montant);
-        // dd($focusCompte);
-
+        $date = new \DateTime('now') ; 
+         $dateFormatted = date_format($date,"d/m/Y H:i");
+        $focusCompte[0]->setMiseajour($dateFormatted);
+       //dd($focusCompte);
+    
         $this->manager->persist($focusCompte[0]);
         $this->manager->flush();
-        return $this->json("Votre dépôt a été fait avec success!",201);
+       return $this->json("Vous venez de déposer $montant  dans le compte N°".$focusCompte[0]->getIdentifiantCompte()."."."\n"."Mise à jour: ".$focusCompte[0]->getMiseajour()."");
 
     } 
 

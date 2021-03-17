@@ -36,15 +36,22 @@ class SummarizeTransactionRepository extends ServiceEntityRepository
     }
     */
 
-    /*
-    public function findOneBySomeField($value): ?SummarizeTransaction
-    {
+   
+   /* public function transactionByCompte($value): ?SummarizeTransaction {
         return $this->createQueryBuilder('s')
-            ->andWhere('s.exampleField = :val')
+            ->andWhere('s.compte = :val')
+            ->setParameter('val', $value)
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+   /* public function transactionByUser($value): ?SummarizeTransaction {
+        return $this->createQueryBuilder('s')
+            ->andWhere('s.user = :val')
             ->setParameter('val', $value)
             ->getQuery()
             ->getOneOrNullResult()
         ;
-    }
-    */
+    } */
+    
 }

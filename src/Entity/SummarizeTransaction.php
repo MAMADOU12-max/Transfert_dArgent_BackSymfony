@@ -34,6 +34,21 @@ class SummarizeTransaction
      */
     private $type;
 
+    /**
+     * @ORM\Column(type="integer")
+     */
+    private $user;
+
+    /**
+     * @ORM\Column(type="string")
+     */
+    private $date;
+
+    /**
+     * @ORM\Column(type="integer")
+     */
+    private $frais;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -71,6 +86,42 @@ class SummarizeTransaction
     public function setType(string $type): self
     {
         $this->type = $type;
+
+        return $this;
+    }
+
+    public function getUser(): ?int
+    {
+        return $this->user;
+    }
+
+    public function setUser(int $user): self
+    {
+        $this->user = $user;
+
+        return $this;
+    }
+
+    public function getDate(): ?string
+    {
+        return $this->date;
+    }
+
+    public function setDate(string $date): self
+    {
+        $this->date = $date;
+
+        return $this;
+    }
+
+    public function getFrais(): ?int
+    {
+        return $this->frais;
+    }
+
+    public function setFrais(int $frais): self
+    {
+        $this->frais = $frais;
 
         return $this;
     }

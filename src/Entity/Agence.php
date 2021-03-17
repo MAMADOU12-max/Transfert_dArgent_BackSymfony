@@ -102,6 +102,11 @@ class Agence
      */
     private $users;
 
+    /**
+     * @ORM\OneToOne(targetEntity=Compte::class, cascade={"persist", "remove"})
+     */
+    private $compte;
+
 
     public function __construct()
     {
@@ -176,6 +181,18 @@ class Agence
                 $user->setAgence(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getCompte(): ?Compte
+    {
+        return $this->compte;
+    }
+
+    public function setCompte(?Compte $compte): self
+    {
+        $this->compte = $compte;
 
         return $this;
     }

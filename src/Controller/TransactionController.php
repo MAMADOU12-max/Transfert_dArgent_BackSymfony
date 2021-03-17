@@ -19,6 +19,7 @@ use App\Repository\TransactionRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use App\Repository\SummarizeTransactionRepository;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -28,7 +29,8 @@ class TransactionController extends AbstractController
 
     public function __construct(UserRepository $userRepository, SerializerInterface $serializer, CompteRepository $compteRepository, 
                                 EntityManagerInterface $manager, ValidatorInterface $validator, TransactionRepository $transactionRepository,
-                                TarifsRepository $tarifsRepository, ClientRepository $clientRepository, CommissionsRepository $commissionsRepository) {
+                                TarifsRepository $tarifsRepository, ClientRepository $clientRepository, CommissionsRepository $commissionsRepository,
+                                SummarizeTransactionRepository $summarizeTransactionRepository) {
 
         $this->userRepository = $userRepository ;
         $this->compteRepository = $compteRepository;
@@ -39,6 +41,7 @@ class TransactionController extends AbstractController
         $this->tarifsRepository = $tarifsRepository;
         $this->clientRepository = $clientRepository;
         $this->commissionsRepository = $commissionsRepository;
+        $this->summarizeTransactionRepository = $summarizeTransactionRepository;
     }
 
 
@@ -233,6 +236,9 @@ class TransactionController extends AbstractController
         $summarizeTransaction->setMontant($montantToSended);
         $summarizeTransaction->setCompte($compteFocus->getId());
         $summarizeTransaction->setType("dépôt");
+        $summarizeTransaction->setUser( $utilisateur);
+        $summarizeTransaction->setDate(date_format($date,"d/m/Y"));
+        $summarizeTransaction->setFrais($fraisEnvoieHT);
         $this->manager->persist($summarizeTransaction);
 
  
@@ -254,7 +260,7 @@ class TransactionController extends AbstractController
      * @Route(
      *      name="recupTransaction" ,
      *      path="/api/recupTransaction/{code}" ,
-     *     methods={"PUT"} ,
+     *     methods={"GET"} ,
      *     defaults={
      *         "__controller"="App\Controller\TransactionController::recupTransaction",
      *         "_api_resource_class"=Transaction::class ,
@@ -265,7 +271,7 @@ class TransactionController extends AbstractController
     public function recupTransaction(Request $request, SerializerInterface $serializer, $code)
     {
         $transactionDo =  $this->transactionRepository->findTransactionByCode($code) ;
-         
+             
         if($transactionDo) {
             
             if($transactionDo->getEtat() == "Reussie") {
@@ -273,27 +279,20 @@ class TransactionController extends AbstractController
             } else if($transactionDo->getEtat() == "Annulée"){
                  return $this->json("Cette transaction a étè annulée ", 400);  
             } else {
-                // data given on postman
-                $dataPostman =  json_decode($request->getContent());
-                // $idCompteCaissierGiven = $dataPostman->comptes;
 
-
-                $user = $dataPostman->user ; //get utilisateur
-                $utilisateur = $this->userRepository->findOneBy(['id'=>$user]);
-                // dd($utilisateur);
+                $userConnected = $this->getUser();  //for recup token's user
                   //get id agence of utilisateur
-                $idAgence = $this->userRepository->findOneBy(['id'=>$utilisateur])->getAgence()->getId();
+                $idAgence = $this->userRepository->findOneBy(['id'=>$userConnected->getId()])->getAgence()->getId();
                 // dd($idAgence);
                 $focusCompte = $this->compteRepository->findBy(['agence'=>$idAgence])[0]; //reper account
                 // dd($focusCompte);
-
 
                 $time = new \DateTime();
                 $dateFormatted = date_format($time,"d/m/Y H:i");
                 $transactionDo->setDateRetrait($time);
                 $transactionDo->setEtat("Reussie");
                 $transactionDo->setCompteRetrait($focusCompte);
-                $transactionDo->setRetraitUser($utilisateur);
+                $transactionDo->setRetraitUser($userConnected);
                 $this->manager->persist($transactionDo);
                  //  dd($transactionDo);
                 
@@ -314,10 +313,11 @@ class TransactionController extends AbstractController
                 $summarizeTransaction->setMontant($transactionDo->getMontant());
                 $summarizeTransaction->setCompte($focusCompte->getId());
                 $summarizeTransaction->setType("retrait");
+                $summarizeTransaction->setUser($userConnected->getId());
+                $summarizeTransaction->setDate(date_format($time,"d/m/Y"));
                 $this->manager->persist($summarizeTransaction);
-
+                
                  $this->manager->flush();
-                // $json = json_encode('Vous venez de retirer l\'argent la somme de  !!');
                 return $this->json("Vous avez retiré ".$transactionDo->getMontant()." par le distributeur N°".$focusCompte->getIdentifiantCompte()."."."\n"."Date de retrait: ".$focusCompte->getMiseajour()."", 200);
 
             }
@@ -459,7 +459,64 @@ class TransactionController extends AbstractController
 
     }
    
-    /*  ***************************************************** End Annuler Transaction *********************************************************** */
+    /*  ******************************* End Annuler Transaction *********************************************** */
+  
+
+
+
+    /* ***************************** Transaction par Compte ***************************************** */
+  
+    
+     /**
+     * @Route(
+     *      name="transactionByCompte" ,
+     *      path="/api/transactionByCompte" ,
+     *     methods={"GET"}
+     *)
+     */
+    public function transactionByCompte() {
+              $compte = array();
+              $idCompte = $this->getUser()->getAgence()->getCompte()->getId();
+             // dd($idCompte);
+              $alldepotsComptes = $this->summarizeTransactionRepository->findAll();
+              foreach($alldepotsComptes as $value) {
+                    if($value->getCompte() == $idCompte) {
+                        array_push($compte, $value );
+                    }
+              }
+              return $this->json($compte , 200);
+              
+    }
+
+    /* ***************************End Transaction par Compte* ******************************* */
+
+
+
+    /* *************************** End Transaction par User ********************************* */
+
+       /**
+     * @Route(
+     *      name="transactionByUser" ,
+     *      path="/api/transactionByUser" ,
+     *     methods={"GET"}
+     *)
+     */
+    public function transactionByUser(Request $request) {
+        $transaction = array();
+        $idUser = $this->getUser()->getId();
+        // dd($idUser);
+        $alldepotsComptes = $this->summarizeTransactionRepository->findAll();
+        foreach($alldepotsComptes as $value) {
+              if($value->getUser() == $idUser) {
+                  array_push($transaction, $value );
+              }
+        }
+        return $this->json($transaction , 200);
+        
+}
+
+
+    /* *************************** End Transaction par User ********************************* */
 
 }
 

@@ -47,10 +47,8 @@ class DepotController extends AbstractController {
       
         //all data from postman
         $dataPostman =  json_decode($request->getContent());
-        // dd($dataPostman);
-
-         $montant = $dataPostman->montantDeDepot ; //get montant
-         $utilisateur = $dataPostman->utilisateur ; //get utilisateur
+        $montant = $dataPostman->montantDeDepot ; //get montant
+        $utilisateur = $this->getUser() ; //get utilisateur
 
          // Validate negatif number 
         if($montant < 0) {
@@ -61,9 +59,10 @@ class DepotController extends AbstractController {
         $newDepot = new Depot(); //Instancier Depot
 
         $newDepot->setMontantDeDepot($dataPostman->montantDeDepot);
-        $newDepot->setCaissiers($this->userRepository->findOneBy(['id'=>(int)$utilisateur]));
+        $newDepot->setCaissiers($utilisateur);
+       
         //get id agence of utilisateur
-        $idAgence = $this->userRepository->findOneBy(['id'=>(int)$utilisateur])->getAgence()->getId();
+        $idAgence = $utilisateur->getAgence()->getId();
         $focusCompte = $this->compteRepository->findBy(['agence'=>$idAgence]); //reper account
         
         $newDepot->setComptes($focusCompte[0]);
@@ -73,7 +72,6 @@ class DepotController extends AbstractController {
         $date = new \DateTime('now') ; 
          $dateFormatted = date_format($date,"d/m/Y H:i");
         $focusCompte[0]->setMiseajour($dateFormatted);
-       //dd($focusCompte);
     
         $this->manager->persist($focusCompte[0]);
         $this->manager->flush();

@@ -315,6 +315,7 @@ class TransactionController extends AbstractController
                 $summarizeTransaction->setType("retrait");
                 $summarizeTransaction->setUser($userConnected->getId());
                 $summarizeTransaction->setDate(date_format($time,"d/m/Y"));
+                $summarizeTransaction->setFrais(0);
                 $this->manager->persist($summarizeTransaction);
                 
                  $this->manager->flush();
@@ -513,7 +514,7 @@ class TransactionController extends AbstractController
         }
         return $this->json($transaction , 200);
         
-}
+    }
 
 
     /* *************************** End Transaction par User ********************************* */

@@ -64,7 +64,7 @@ class UserController extends AbstractController
         // dd($user);
 
         //get profil
-        $profil = $user["profils"] ;
+        $profil = $user["profil"] ;
         $agence = $user["agence"] ;
 
         //Instance User

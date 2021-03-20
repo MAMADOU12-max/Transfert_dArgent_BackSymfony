@@ -142,18 +142,17 @@ class TransactionController extends AbstractController
     public function doTransaction(Request $request, SerializerInterface $serializer)
     {
         $dataPostman =  json_decode($request->getContent());
-        $utilisateur = $dataPostman->user;
         // get user depot
-        $user_depot = $this->userRepository->findOneBy(['id'=>(int)$utilisateur]);
-
+        $user_depot = $this->getUser();
+        $utilisateur = $user_depot->getId();
          //get id agence of utilisateur
-        $idAgence = $this->userRepository->findOneBy(['id'=>(int)$utilisateur])->getAgence()->getId();
-        
+        $idAgence = $user_depot->getAgence()->getId();
+        //dd($idAgence);
         $compteFocus = $this->compteRepository->findBy(['agence'=>$idAgence])[0]; //reper account
-        // dd($compteFocus);
+         //dd($compteFocus);
         // recup montant to send
          $montantToSended = $dataPostman->montant;
-        if($montantToSended < 0) {
+        if ($montantToSended < 0){
             return $this->json("le montant ne peut pas être négatif!", 400);  
         }
         
@@ -163,7 +162,7 @@ class TransactionController extends AbstractController
          }
 
         // transfer taxe
-        if($montantToSended < 2000000) {     
+        if ($montantToSended < 2000000) {     
             $fraisEnvoieHT  = $this->getTarifs($montantToSended);
             $realMontant = $montantToSended - $fraisEnvoieHT;
         } else if($montantToSended >= 2000000) {
@@ -210,7 +209,6 @@ class TransactionController extends AbstractController
         $clientReceiver->setNom($dataPostman->nomBeneficaire);
         $clientReceiver->setPrenom($dataPostman->prenomBeneficaire);
         $clientReceiver->setPhone($dataPostman->phoneBeneficiaire);
-        // $clientReceiver->setIdentityNumber($receiver->identityNumber);
         $clientReceiver->setCodeTransaction($genereCodeTransaction);
         $this->manager->persist($clientReceiver);
         
@@ -260,7 +258,7 @@ class TransactionController extends AbstractController
      * @Route(
      *      name="recupTransaction" ,
      *      path="/api/recupTransaction/{code}" ,
-     *     methods={"GET"} ,
+     *     methods={"PUT"} ,
      *     defaults={
      *         "__controller"="App\Controller\TransactionController::recupTransaction",
      *         "_api_resource_class"=Transaction::class ,
@@ -301,13 +299,19 @@ class TransactionController extends AbstractController
                 $compteFocus->setMiseajour($dateFormatted);
                 $this->manager->persist($compteFocus);
                // dd($compteFocus->getMiseajour());
-                
+
+                // get identity from postman
+                $identifiantBeneficiaire = json_decode($request->getContent())->identifiantBeneficiaire;
+                //  dd($identifiantBeneficiaire);
+
                 //update client received  
                 $clientReceiver = $this->clientRepository->find($transactionDo->getRecuperer()->getId());
                 $clientReceiver->setMontant($transactionDo->getMontant());
                 $clientReceiver->setAction("retrait");
+                $clientReceiver->setIdentityNumber((int)($identifiantBeneficiaire));
                 $this->manager->persist($clientReceiver);
-             
+                //dd($clientReceiver);
+
                 // summarize transaction
                 $summarizeTransaction = new SummarizeTransaction();
                 $summarizeTransaction->setMontant($transactionDo->getMontant());

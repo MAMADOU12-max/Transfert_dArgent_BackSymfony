@@ -235,8 +235,9 @@ class TransactionController extends AbstractController
         $summarizeTransaction->setCompte($compteFocus->getId());
         $summarizeTransaction->setType("dépôt");
         $summarizeTransaction->setUser( $utilisateur);
-        $summarizeTransaction->setDate(date_format($date,"d/m/Y"));
+        $summarizeTransaction->setDatetransaction($date);
         $summarizeTransaction->setFrais($fraisEnvoieHT);
+        $summarizeTransaction->setCodeTransaction($genereCodeTransaction);
         $this->manager->persist($summarizeTransaction);
 
  
@@ -318,8 +319,9 @@ class TransactionController extends AbstractController
                 $summarizeTransaction->setCompte($focusCompte->getId());
                 $summarizeTransaction->setType("retrait");
                 $summarizeTransaction->setUser($userConnected->getId());
-                $summarizeTransaction->setDate(date_format($time,"d/m/Y"));
+                $summarizeTransaction->setDatetransaction($time);
                 $summarizeTransaction->setFrais(0);
+                $summarizeTransaction->setCodeTransaction($transactionDo->getCodeTransaction());
                 $this->manager->persist($summarizeTransaction);
                 
                  $this->manager->flush();
@@ -333,11 +335,62 @@ class TransactionController extends AbstractController
       
     }
 
-    /*  ********************************************************* End Recup Transaction ************************************************************ */
+    /*  ******************************************* End Recup Transaction ****************************************************** */
+ 
+ 
+ 
+    /*  ****************************************** Get Transaction By Code not verif ******************************************** */
+   
+     /**
+     * @Route(
+     *      name="recupTransaction" ,
+     *      path="/api/getdirecttransaction/{code}" ,
+     *     methods={"GET"}
+     *)
+     */
+     public function getTransactionCodeDirectly($code) {
+
+        $data = array();
+        
+        $transaction =  $this->transactionRepository->findTransactionByCode($code) ;
+
+        if($transaction) {
+
+                $recuperator = $this->clientRepository->findById($transaction->getRecuperer()->getId());
+                // transaction client
+                if($recuperator) {
+                    $envoyer = $this->clientRepository->findById($transaction->getEnvoyer()->getId());
+                    // browser data   
+                    foreach($envoyer as $env ) {
+                        foreach($recuperator as $recup) {
+                            array_push($data, $transaction, $env, $recup );
+                        }
+                    }
+                    return $this->json($data , 200);
+                } else {
+                    $deposer = $this->clientRepository->findById($transaction->getDeposer()->getId());
+                    $retrait = $this->clientRepository->findById($transaction->getRetrait()->getId());
+                    
+                    foreach($deposer as $dep) {
+                        foreach($retrait as $ret) {
+                            array_push($data, $transaction, $dep, $ret);
+                        }
+                    }
+                    return $this->json($data , 200);
+                }
+           
+        } else {
+            return $this->json("Ce code n'est pas valide", 400);  
+        }
+        $transactionDo =  $this->transactionRepository->findTransactionByCode($code) ;
+        return $this->json($transactionDo , 200);
+     }
+    
+    /*  *************************************** End Get Transaction By Code not verif ****************************************** */
 
 
 
-    /*  ******************************************************** Get Transaction By Code *********************************************************** */
+    /*  ******************************************** Get Transaction By Code *************************************************** */
 
      /**
      * @Route(
@@ -407,7 +460,7 @@ class TransactionController extends AbstractController
      * @Route(
      *      name="annulerTransaction" ,
      *      path="/api/transaction/{code}/annuler" ,
-     *     methods={"PUT"} ,
+     *     methods={"GET"} ,
      *     defaults={
      *         "__controller"="App\Controller\TransactionController::annulerTransaction",
      *         "_api_resource_class"=Transaction::class ,
@@ -438,7 +491,7 @@ class TransactionController extends AbstractController
                $clientReceiver = $this->clientRepository->find($transaction->getRecuperer()->getId());
                $clientReceiver->setAction("annulée");
                $this->manager->persist($clientReceiver);
-               $nomClient = $clientReceiver->getNomComplet();
+               $nomClient =$clientReceiver->getPrenom().' '.$clientReceiver->getNom();
                $numClient = $clientReceiver->getPhone();
 
                $time = new \DateTime();
@@ -464,12 +517,11 @@ class TransactionController extends AbstractController
 
     }
    
-    /*  ******************************* End Annuler Transaction *********************************************** */
-  
+    /*  ***************************** End Annuler Transaction ***************************************** */
 
 
 
-    /* ***************************** Transaction par Compte ***************************************** */
+    /* ******************************* Transaction par Compte ***************************************** */
   
     
      /**
@@ -482,6 +534,7 @@ class TransactionController extends AbstractController
     public function transactionByCompte() {
               $compte = array();
               $idCompte = $this->getUser()->getAgence()->getCompte()->getId();
+          //    $idCompte = $this->getUser()->getAgence()->getCompte()->getId();
              // dd($idCompte);
               $alldepotsComptes = $this->summarizeTransactionRepository->findAll();
               foreach($alldepotsComptes as $value) {

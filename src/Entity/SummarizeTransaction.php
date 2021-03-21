@@ -40,14 +40,19 @@ class SummarizeTransaction
     private $user;
 
     /**
-     * @ORM\Column(type="string")
-     */
-    private $date;
-
-    /**
      * @ORM\Column(type="integer", nullable=true)
      */
     private $frais;
+
+    /**
+     * @ORM\Column(type="date", nullable=true)
+     */
+    private $datetransaction;
+
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $codeTransaction;
 
     public function getId(): ?int
     {
@@ -102,17 +107,6 @@ class SummarizeTransaction
         return $this;
     }
 
-    public function getDate(): ?string
-    {
-        return $this->date;
-    }
-
-    public function setDate(string $date): self
-    {
-        $this->date = $date;
-
-        return $this;
-    }
 
     public function getFrais(): ?int
     {
@@ -122,6 +116,30 @@ class SummarizeTransaction
     public function setFrais(int $frais): self
     {
         $this->frais = $frais;
+
+        return $this;
+    }
+
+    public function getDatetransaction(): ?\DateTimeInterface
+    {
+        return $this->datetransaction;
+    }
+
+    public function setDatetransaction(?\DateTimeInterface $datetransaction): self
+    {
+        $this->datetransaction = $datetransaction;
+
+        return $this;
+    }
+
+    public function getCodeTransaction(): ?string
+    {
+        return $this->codeTransaction;
+    }
+
+    public function setCodeTransaction(string $codeTransaction): self
+    {
+        $this->codeTransaction = $codeTransaction;
 
         return $this;
     }

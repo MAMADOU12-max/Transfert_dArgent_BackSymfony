@@ -18,14 +18,14 @@ class CompteController extends AbstractController
      *     methods={"GET"} 
      *)
     */
-     // *     defaults={
-     //   *     "__controller"="App\Controller\CompteController::getCompteByAgence",
-     //   *         "_api_resource_class"=Compte::class,
-     //    *         "_api_collection_operation_name"="getCompteByAgence"
-       // *     }
     public function getCompteByAgence( Request $request, CompteRepository $compteRepository, $idAgence) {
          $compte = $compteRepository->findCompteByidAgence($idAgence);
          //dd($compte);
          return $this->json($compte, 200);
     }
+     // *     defaults={
+     //   *     "__controller"="App\Controller\CompteController::getCompteByAgence",
+     //   *         "_api_resource_class"=Compte::class,
+     //    *         "_api_collection_operation_name"="getCompteByAgence"
+       // *     }
 }

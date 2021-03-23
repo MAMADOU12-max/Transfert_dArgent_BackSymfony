@@ -6,7 +6,6 @@ use App\Entity\Agence;
 use App\Repository\UserRepository;
 use App\Repository\AgenceRepository;
 use App\Repository\CompteRepository;
-use App\DataPersister\AgencePersister;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -34,18 +33,26 @@ final class AgencePersister implements ContextAwareDataPersisterInterface
     public function persist($data, array $context = [])
     {
         // if($context["collection_operation_name"]==="POST"){}
+             //dd($data);
+            if($data->getCompte()) {
+                
+                if($data->getCompte()->getSolde() > 700000) {
+                       // get Id last agence from db
+                    $Idlastagence= $this->agenceRepository->findOneBy(array(), array('id' => 'desc'))->getId();
+                    $data->getCompte()->setAgence($data);
+                    // $id = 1;
+                    //dd($id);
+                    //dd($data);
+                    // dd($data->getComptes()[0]->getSolde());
+                     $this->entityManager->persist($data);
+                     $this->entityManager->flush();
+                     return new JsonResponse("success",201) ;
+                }
+                return new JsonResponse("Le compte doit avoir au minimum 700.000",400) ;
+            }
+            return new JsonResponse("Une agence doit obligatoirement avoir un compte",400) ;
          
-            // if($data->getComptes()[0]) {
-               
-            //     if($data->getComptes()[0]->getSolde() > 700000) {
-            //         // dd($data->getComptes()[0]->getSolde());
-            //          $this->entityManager->persist($data);
-            //          $this->entityManager->flush();
-            //          return new JsonResponse("success",201) ;
-            //     }
-            //     return new JsonResponse("the balance must be greater than 700,000",400) ;
-            // }
-            // return new JsonResponse("You must add at least one compte",400) ;   
+            dd($data->getId());  
             $this->entityManager->persist($data);
             $this->entityManager->flush();
             return new JsonResponse("success",201) ;      

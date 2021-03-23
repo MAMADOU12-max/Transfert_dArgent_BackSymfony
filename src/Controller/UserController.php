@@ -63,12 +63,23 @@ class UserController extends AbstractController
         $user = $request->request->all() ;
         // dd($user);
 
-        //get profil
+        //get profil and agence
         $profil = $user["profil"] ;
-        $agence = $user["agence"] ;
-
+        $agence = $user["agence"];
         //Instance User
         $newUser = new User();
+
+        // if agence exist
+        if($user["agence"]) {
+            $newUser->setAgence($this->manager->getRepository(Agence::class)->findOneBy(['id'=>$agence])) ;
+            $newUser->setWorking(1);
+         }
+         if($profil == "") {
+            return $this->json("Vous devez obligatoirement définir un profil", 400);
+         }
+        $newUser->setProfils($this->manager->getRepository(Profil::class)->findOneBy(['libelle'=>$profil])) ;
+         
+        // dd($user);
 
         //recupération de l'image
         $photo = $request->files->get("avatar");
@@ -98,13 +109,9 @@ class UserController extends AbstractController
         $newUser->setArchivage(false);
         $newUser->setType(strtolower($profil));
         
-
-        $newUser->setProfils($this->manager->getRepository(Profil::class)->findOneBy(['libelle'=>$profil])) ;
-        $newUser->setAgence($this->manager->getRepository(Agence::class)->findOneBy(['id'=>$agence])) ;
-     
         $em = $this->getDoctrine()->getManager();
         $em->persist($newUser); 
-        //dd($newUser);
+       // dd($newUser);
         $em->flush();
 
         return $this->json("success",201);

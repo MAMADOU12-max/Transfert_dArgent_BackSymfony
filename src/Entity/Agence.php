@@ -26,7 +26,8 @@ use ApiPlatform\Core\Annotation\ApiFilter;
  *              "path"="/agence" ,
  *              "method"="POST" ,
  *              "security_post_denormalize"="is_granted('ROLE_ADMINSYSTEM')" ,
- *              "security_message"="Only admin system can create an agence" 
+ *              "security_message"="Only admin system can create an agence" ,
+ *               "denormalization_context"={"groups"={"createAgence:write"}} ,
  *          }, 
  *           "allAgence"={
  *              "path"="/agences" ,
@@ -78,14 +79,14 @@ class Agence
 
     /**
      * @ORM\Column(type="string", length=255, unique=true)
-     * @Groups({"agence:create","allagence:read","getAgencebyId:read","partAgencebyId:read"})
+     * @Groups({"agence:create","allagence:read","getAgencebyId:read","partAgencebyId:read","createAgence:write"})
      * @Assert\NotBlank
      */
     private $nomAgence;
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Groups({"agence:create","allagence:read","getAgencebyId:read"})
+     * @Groups({"agence:create","allagence:read","getAgencebyId:read","createAgence:write"})
      * @Assert\NotBlank
      */
     private $adressAgence;
@@ -97,13 +98,15 @@ class Agence
 
     /**
      * @ORM\OneToMany(targetEntity=User::class, mappedBy="agence")
-     * @Groups({"allagence:read","getAgencebyId:read"})
+     * @Groups({"allagence:read","getAgencebyId:read","createAgence:write"})
      * @ApiSubresource
      */
     private $users;
 
     /**
      * @ORM\OneToOne(targetEntity=Compte::class, cascade={"persist", "remove"})
+     * @Groups({"createAgence:write","getAgencebyId:read"})
+     * @ApiSubresource
      */
     private $compte;
 

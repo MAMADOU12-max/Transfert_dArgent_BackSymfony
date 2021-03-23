@@ -89,7 +89,7 @@ class DepotController extends AbstractController {
      * @Route(
      *    name="annulerDepot" ,
      *    path="/api/depot/annuler" ,
-     *    methods={"PUT"} ,
+     *    methods={"GET"} ,
      *    defaults={
      *         "__controller"="App\Controller\DepotController::annulerDepot",
      *         "_api_resource_class"=Depot::class ,
@@ -101,11 +101,11 @@ class DepotController extends AbstractController {
     public function annulerDepot( Request $request) {
     
         //all data from postman
-        $dataPostman =  json_decode($request->getContent());
-        $utilisateur = $dataPostman->utilisateur ; 
+       // $dataPostman =  json_decode($request->getContent());
+        $utilisateur = $this->getUser() ; 
 
         // reper last depot user
-        $lastDepotfromUser = $this->depotRepository->findOneBy(['caissiers'=>$utilisateur], array('id' => 'desc'));     
+        $lastDepotfromUser = $this->depotRepository->findOneBy(['caissiers'=>$utilisateur->getId()], array('id' => 'desc'));     
          // get last depot on db
         $lastDepotfromBd= $this->depotRepository->findOneBy(array(), array('id' => 'desc'));
        
@@ -138,7 +138,8 @@ class DepotController extends AbstractController {
              $this->manager->flush();
             return $this->json("Le dêpot est bien annulé!!",200);
         } else {
-            return $this->json("Desolé, vous ne pouvez plus annuler votre dêpot car un autre dêpot entre temps!",400);
+         //   return $this->json("Desolé, vous ne pouvez plus annuler votre dêpot car il y'a un autre dêpot entre temps!",400);
+            return $this->json("Désolé, vous ne pouvez pas annuler ce dépôt parceque ce n'est le vôtre!",400);
         }
         
     }

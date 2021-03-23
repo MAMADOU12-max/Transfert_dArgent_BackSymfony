@@ -15,7 +15,7 @@ use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
 
 /**
  * @ORM\Entity(repositoryClass=UserRepository::class)
- *  @ApiFilter(SearchFilter::class, properties={"archivage":"exact","type":"exact"})
+ *  @ApiFilter(SearchFilter::class, properties={"archivage":"exact","type":"exact","working":"exact"})
 * @ApiResource(
 *     collectionOperations={
  *          "adding"={
@@ -154,11 +154,17 @@ class User implements UserInterface
      */
     private $transac;
 
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $working;
+
     public function __construct()
     {
         $this->depots = new ArrayCollection();
         $this->comptes = new ArrayCollection();
         $this->Archivage = false ;
+        $this->working = false;
         $this->transactions = new ArrayCollection();
         $this->transac = new ArrayCollection();
     }
@@ -480,6 +486,18 @@ class User implements UserInterface
                 $transac->setDeposerUser(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getWorking(): ?bool
+    {
+        return $this->working;
+    }
+
+    public function setWorking(bool $working): self
+    {
+        $this->working = $working;
 
         return $this;
     }

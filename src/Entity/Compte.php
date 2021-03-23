@@ -72,7 +72,7 @@ class Compte
     /**
      * @ORM\Column(type="integer")
      * @Groups({"allTransaction:read","getTransactionById:read","depot:read","getDepotById:read"
-     * ,"comtpe:read","agence:create","allagence:read","getAgencebyId:read"})
+     * ,"comtpe:read","agence:create","allagence:read","getAgencebyId:read","createAgence:write"})
       * @Assert\NotBlank
      * @Assert\GreaterThanOrEqual(
      *     value = 700000
@@ -102,7 +102,7 @@ class Compte
      * @ORM\Column(type="integer", unique=true)
        * @Assert\NotBlank
      * @Groups({"allTransaction:read","getTransactionById:read","depot:read","getDepotById:read",
-     * "comtpe:read","agence:create","getAgencebyId:read"})
+     * "comtpe:read","agence:create","getAgencebyId:read","createAgence:write"})
      */
     private $identifiantCompte;
 
@@ -113,7 +113,7 @@ class Compte
 
     /**
      * @ORM\OneToOne(targetEntity=Agence::class, cascade={"persist", "remove"})
-     * @Groups({"comtpe:read"})
+     * @Groups({"comtpe:read","createAgence:write"})
     * @Assert\NotBlank
     * @ApiSubresource
      */

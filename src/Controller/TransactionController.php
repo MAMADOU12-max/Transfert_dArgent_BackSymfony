@@ -343,7 +343,7 @@ class TransactionController extends AbstractController
    
      /**
      * @Route(
-     *      name="recupTransaction" ,
+     *      name="getTransac" ,
      *      path="/api/getdirecttransaction/{code}" ,
      *     methods={"GET"}
      *)

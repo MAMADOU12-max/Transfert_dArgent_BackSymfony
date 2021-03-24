@@ -26,7 +26,6 @@ use Symfony\Component\Validator\Constraints as Assert;
  *           } ,
  *          "recupTransaction"={
  *                "route_name"="recupTransaction" ,
- *                "method"="PUT",
  *                "deserialize"= false,
  *                "security_post_denormalize"="is_granted('ROLE_USERAGENCE')" ,
  *               "security_message"="Only user agence can do this action" 

@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\CompteRepository;
+use ApiPlatform\Core\Annotation\ApiFilter;
 use Doctrine\Common\Collections\Collection;
 use ApiPlatform\Core\Annotation\ApiResource;
 use ApiPlatform\Core\Annotation\ApiSubresource;
@@ -14,9 +15,11 @@ use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
 
 /**
  * @ORM\Entity(repositoryClass=CompteRepository::class)
+ * @ApiFilter(SearchFilter::class, properties={"disabled":"exact"})
  * @ApiResource(
  *     collectionOperations={
  *           "addCompteByAdminSystem"={
@@ -30,7 +33,8 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  *               "path"="/comptes" ,
  *               "method"="GET" ,
  *                 "security_post_denormalize"="is_granted('ROLE_ADMINAGENCE') || is_granted('ROLE_ADMINSYSTEM')",
- *                "security_message"="Only admin system can see accounts" 
+ *                "security_message"="Only admin system can see accounts" ,
+ *                 "normalization_context"={"groups"={"allcompte:read"}} 
  *           }
  *     },
  *    itemOperations={
@@ -65,14 +69,14 @@ class Compte
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
      * @Groups({"allTransaction:read","getTransactionById:read","depot:read","getDepotById:read","partAgencebyId:read",
-     * "getAgencebyId:read","usersById:read"})
+     * "getAgencebyId:read","usersById:read","allcompte:read"})
      */
     private $id;
 
     /**
      * @ORM\Column(type="integer")
      * @Groups({"allTransaction:read","getTransactionById:read","depot:read","getDepotById:read"
-     * ,"comtpe:read","agence:create","allagence:read","getAgencebyId:read","createAgence:write"})
+     * ,"comtpe:read","agence:create","allagence:read","getAgencebyId:read","createAgence:write", "allcompte:read"})
       * @Assert\NotBlank
      * @Assert\GreaterThanOrEqual(
      *     value = 700000
@@ -102,7 +106,7 @@ class Compte
      * @ORM\Column(type="integer", unique=true)
        * @Assert\NotBlank
      * @Groups({"allTransaction:read","getTransactionById:read","depot:read","getDepotById:read",
-     * "comtpe:read","agence:create","getAgencebyId:read","createAgence:write"})
+     * "comtpe:read","agence:create","getAgencebyId:read","createAgence:write","allcompte:read"})
      */
     private $identifiantCompte;
 
@@ -113,7 +117,7 @@ class Compte
 
     /**
      * @ORM\OneToOne(targetEntity=Agence::class, cascade={"persist", "remove"})
-     * @Groups({"comtpe:read","createAgence:write"})
+     * @Groups({"comtpe:read","createAgence:write","allcompte:read"})
     * @Assert\NotBlank
     * @ApiSubresource
      */
@@ -122,7 +126,7 @@ class Compte
     /**
      * @ORM\Column(type="string")
      * @Groups({"allTransaction:read","getTransactionById:read","depot:read","getDepotById:read"
-     * ,"comtpe:read","agence:create","allagence:read","getAgencebyId:read"})
+     * ,"comtpe:read","agence:create","allagence:read","getAgencebyId:read","allcompte:read"})
      */
     private $miseajour;
 

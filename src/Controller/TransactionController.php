@@ -532,25 +532,23 @@ class TransactionController extends AbstractController
      *)
      */
     public function transactionByCompte() {
-              $compte = array();
-              $idCompte = $this->getUser()->getAgence()->getCompte()->getId();
-          //    $idCompte = $this->getUser()->getAgence()->getCompte()->getId();
-             // dd($idCompte);
-              $alldepotsComptes = $this->summarizeTransactionRepository->findAll();
-              foreach($alldepotsComptes as $value) {
-                    if($value->getCompte() == $idCompte) {
-                        array_push($compte, $value );
-                    }
-              }
-              return $this->json($compte , 200);
-              
+        $compte = array();
+        $idCompte = $this->getUser()->getAgence()->getCompte()->getId();
+        // dd($idCompte);
+        $alldepotsComptes = $this->summarizeTransactionRepository->findAll();
+        foreach($alldepotsComptes as $value) {
+            if($value->getCompte() == $idCompte) {
+                array_push($compte, $value );
+            }
+        }
+        return $this->json($compte , 200);           
     }
 
     /* ***************************End Transaction par Compte* ******************************* */
 
 
 
-    /* *************************** End Transaction par User ********************************* */
+    /* *************************** Transaction par User ********************************* */
 
        /**
      * @Route(
@@ -572,7 +570,6 @@ class TransactionController extends AbstractController
         return $this->json($transaction , 200);
         
     }
-
 
     /* *************************** End Transaction par User ********************************* */
 

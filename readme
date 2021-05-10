@@ -1,1 +1,7 @@
 Mise en place
+
+For run this project, you must have on your computer symfony and composer
+
+Installing composer on linux: sudo apt install composer
+
+Install composer on windows :  https://getcomposer.org/

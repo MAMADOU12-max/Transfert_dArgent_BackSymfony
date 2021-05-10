@@ -1,4 +1,4 @@
-<h2> Mise en place <h2>
+Mise en place 
 
 For run this project, you must have on your computer symfony and composer
 
@@ -12,5 +12,14 @@ Installing symfony on linux: wget https://get.symfony.com/cli/installer -O - | b
 
 https://symfony.com/download
 
-If all is ok, we can clone project now :: git clone 
+1/ If all is ok, we can clone project now :: git clone 
+
+2/ Install all dependance::  composer install
+
+3/ Create database:: php bin/console doctrine:database:create
+
+4/ Make and load entity::  php bin/console make:migration && php bin/console doctrine:migrations:migrate
+
+5/ Generate public and private key if isn't
+
 
